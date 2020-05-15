@@ -77,7 +77,7 @@ If you do not have a logo, just create an empty file called Logo.bin on the Rasp
 
 #### Optional additional steps
 - Use HOSTNAME.local instead of an IP address, where HOSTNAME is the hostname set with raspi-config. This should work automatically on Macs and Linux/Unix computers. For Windows machines, you will need to install Bonjour. To implement this system, change the value in IP_ADDRESS.txt to HOSTNAME.local.</li>
-- Convert RPi to read-only to remove the need for power button and risk of SD card corruption such as at 
+- Convert RPi to read-only to remove the need for power button and risk of SD card corruption such as at
 	https://medium.com/@andreas.schallwig/how-to-make-your-raspberry-pi-file-system-read-only-raspbian-stretch-80c0f7be7353</li>
 
 ### Wiring
@@ -92,7 +92,7 @@ Next, solder up the power jack and thermal printer cables (power and data; these
 Finally, connect all corresponding cables and sockets and check that the Raspberry Pi boots and runs successfully.
 
 ### Assembly
-Now that the circuit is complete, assemble the printer as shown below. 
+Now that the circuit is complete, assemble the printer as shown below.
 #### Raspberry Pi and Circuit
 First, install the Raspberry Pi. Using the M2x6 screws, mount the Raspberry Pi with the GPIO header to the right and ports and connectors to the left. Next, insert the circuit board on top of the Raspberry Pi's GPIO header. You can use tape and/or a mirror to help line up the pins. Now install the power button and LED; the former needs to have the nut screwed on from the back, whereas the latter is just a press fit.
 
@@ -125,6 +125,8 @@ To install the Chrome Extension, navigate to <a href="chrome://extensions">chrom
 Click on the extension on Google Chrome, navigate to either the eBay Print a shipping label page or the PayPal Activity page (make sure to open at least one transaction; the data gathered will appear if successful), ensure that the printer is up and running, and press the "Send Data" button. If all is well, a message "Successfully sent data to the printer" will appear, the printer's light will start flashing and the paper will print. If not, please see Troubleshooting below.
 #### Booting Up and Shutting Down
 On boot, the printer will flash its LED slowly to indicate that the printer is ready for use. When you want to shut it down, press and hold the power button until the LED turns off. Then disconnect the power supply.
+#### Note About PayPal
+Due to the multiple different types of data displayed on PayPal, the correct values may not be parsed, so they need to be checked before printing.
 
 ### Troubleshooting
 #### LED not flashing after boot
