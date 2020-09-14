@@ -122,7 +122,7 @@ To install the Chrome Extension, navigate to <a href="chrome://extensions">chrom
 
 ### Usage
 #### Printing
-Click on the extension on Google Chrome, navigate to either the eBay Print a shipping label page or the PayPal Activity page (make sure to open at least one transaction; the data gathered will appear if successful), ensure that the printer is up and running, and press the "Send Data" button. If all is well, a message "Successfully sent data to the printer" will appear, the printer's light will start flashing and the paper will print. If not, please see Troubleshooting below.
+Click on the extension on Google Chrome, navigate to either the eBay Print a shipping label page or the PayPal Activity page (make sure to open at least one transaction; the data gathered will appear if successful), ensure that the printer is up and running, press the "Parse Data" button to read the data off of the webpage, and finally press the "Print" button. If all is well, a message "Successfully sent data to the printer" will appear, the printer's light will start flashing and the paper will print. If not, please see Troubleshooting below. Also, there is a "Save Data" button to save the data into the extension, so that when it is reopened, the same settings will show.
 #### Booting Up and Shutting Down
 On boot, the printer will flash its LED slowly to indicate that the printer is ready for use. When you want to shut it down, press and hold the power button until the LED turns off. Then disconnect the power supply.
 #### Note

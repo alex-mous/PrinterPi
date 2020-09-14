@@ -1,136 +1,60 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<script src='./main.js'></script>
-		<style>
-			body {
-				min-width: 400px;
-				background: #f9f9f9;
-				padding: 1px;
-			}
-
-			.title {
-				text-align: center;
-				font-size: 1.9em;
-				color: #d89200;
-			}
-
-			h2, h3, h4 {
-				text-align: center;
-			}
-
-			.datafield {
-				font-size: 1.2em;
-			}
-
-			.datatable {
-				font-size: 1.2em;
-				border: 1px solid black;
-				border-collapse: collapse;
-			}
-
-			.datatable thead {
-				font-weight: 800;
-			}
-
-			.datatable tr {
-				border: 1px solid black;
-			}
-
-			.datatable td {
-				border: 1px solid black;
-			}
-
-			.input-field {
-				text-align: center;
-				border: 1px solid #aaaaaa;
-			}
-
-			.input-field .btn-add-row {
-				border: none;
-			}
-
-			.btn {
-				width: 100%;
-				padding: 3px;
-				font-size: 1.3em;
-				background: #e8a202;
-				color: #000000;
-				border: 2px solid black;
-				border-radius: 7.5px;
-			}
-
-			.btn:hover {
-				background: #333333;
-				color: #ffffff;
-			}
-
-			.btn:active {
-				background: #888888;
-			}
-
-			.btn:disabled {
-				background: #eeeeee;
-				color: #aaaaaa;
-			}
-
-			input {
-				width: 100%;
-			}
-
-			table {
-				width: 100%;
-			}
-
-			.btn-add-row {
-				width: 100%;
-				padding: 0.2px;
-				margin: 0;
-			}
-		</style>
+		<link rel="stylesheet" href="./css/bootstrap.min.css">
+		<link rel="stylesheet" href="./css/font-awesome.min.css">
 	</head>
-	<body>
-		<h2 class="title">PrinterPi</h2>
-		<h4>An automatic web parser and packing list printer using a Raspberry Pi and a thermal printer</h4>
-		<hr>
-		<h3><span id='done-msg'>Not connected - press Send Data above</span></h3>
-		<hr>
-		<h4 id="more-info"></h4>
-			<button class="btn" id='run-button'>Print</button>
-			<hr>
-			<span id="main-data">
-				<h2>Data Gathered</h2>
-				<h3>Address</h3>
-				<!--<table>
-					<tbody id="address">
-
-					</tbody>
+	<body style="width:450px;">
+		<div class="container py-2">
+			<h3 class="title text-center font-weight-bold">PrinterPi</h2>
+			<p class="text-muted text-center">An automatic web parser and packing list printer using a Raspberry Pi and a thermal printer</p>
+			<hr class="py-1 my-1">
+			<h5 class="text-center h5">
+				<p class="text-info" id="done-msg">
+					Not connected
+				</p>
+			</h5>
+			<hr class="py-1 my-1">
+			<h6 class="text-info text-center" id="more-info"></h6>
+			<div class="px-5 py-1">
+				<button class="btn btn-primary w-100" id='run-button'>Print</button>
+			</div>
+			<div class="px-3 py-1 row">
+				<button class="btn btn-sm btn-warning col mx-2" id='parse-button'>Parse Data</button>
+				<button class="btn btn-sm btn-success col mx-2" id='save-button'>Save Data</button>
+			</div>
+			<hr class="py-1 my-1">
+			<h5 class="text-center p-0 pt-1 m-0">Address</h5>
+			<textarea class="form-control h-100" rows="4" id="Address"></textarea>
+			<h5 class="text-center p-0 pt-1 m-0">Shipping</h5>
+			<input type="text" class="form-control w-100" id="Shipping" />
+			<h5 class="text-center p-0 pt-1 m-0">Subtotal<p class="text-muted h6">(not including shipping)</p></h5>
+			<input type="text" class="form-control w-100" id="Subtotal" />
+			<hr class="py-1 mt-2 mb-0">
+			<h5 class="text-center p-0 pt-1 m-0">Items Purchased</h5>
+			<table class="table">
+				<thead>
 					<tr>
-						<td class="input-field">
-							<button class="btn-add-row" id="address-row-btn">Add row</button>
-						</td>
+						<th>Description</th>
+						<th>Price (Total)</th>
+						<th>QTY</th>
+						<th>SKU</th>
+						<th></th>
 					</tr>
-				</table>-->
-				<textarea id="address" rows="4" cols="60"> </textarea>
-				<h3>Shipping Paid</h3>
-				<input type="text" class="datafield input-field" id="shipping" />
-				<h3>Total Paid (not including shipping)</h3>
-				<input type="text" class="datafield input-field" id="total" />
-				<h3>Items Purchased</h3>
-				<table class="datatable">
-					<thead>
-						<tr>
-							<th>Description</th>
-							<th>Price (Total)</th>
-							<th>QTY</th>
-							<th>SKU</th>
-						</tr>
-					</thead>
-					<tbody id="items">
-					</tbody>
-				</table>
-				<button class="btn-add-row" id="items-row-btn">Add row</button>
-				<hr>
-			</span>
+				</thead>
+				<tbody id="items">
+				</tbody>
+			</table>
+			<div class="row">
+				<div class="col px-3">
+					<button class="btn btn-secondary btn-sm w-100 py-0" id="items-row-btn">Add row</button>
+				</div>
+			</div>
+			<hr>
+		</div>
+		<script src='./js/main.js'></script>
+		<script src='./js/jquery.min.js'></script>
+		<script src='./js/popper.min.js'></script>
+		<script src='./js/bootstrap.min.js'></script>
 	</body>
 </html>

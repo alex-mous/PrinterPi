@@ -1,0 +1,84 @@
+body {
+  min-width: 400px;
+  background: #f9f9f9;
+  padding: 1px;
+}
+
+.title {
+  text-align: center;
+  font-size: 1.9em;
+  color: #d89200;
+}
+
+h2, h3, h4 {
+  text-align: center;
+}
+
+.datafield {
+  font-size: 1.2em;
+}
+
+.datatable {
+  font-size: 1.2em;
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+.datatable thead {
+  font-weight: 800;
+}
+
+.datatable tr {
+  border: 1px solid black;
+}
+
+.datatable td {
+  border: 1px solid black;
+}
+
+.input-field {
+  text-align: center;
+  border: 1px solid #aaaaaa;
+}
+
+.input-field .btn-add-row {
+  border: none;
+}
+
+.btn {
+  width: 100%;
+  padding: 3px;
+  font-size: 1.3em;
+  background: #e8a202;
+  color: #000000;
+  border: 2px solid black;
+  border-radius: 7.5px;
+}
+
+.btn:hover {
+  background: #333333;
+  color: #ffffff;
+}
+
+.btn:active {
+  background: #888888;
+}
+
+.btn:disabled {
+  background: #eeeeee;
+  color: #aaaaaa;
+}
+
+input {
+  width: 100%;
+}
+
+table {
+  width: 100%;
+}
+
+.btn-add-row {
+  width: 100%;
+  padding: 0.2px;
+  margin: 0;
+}
