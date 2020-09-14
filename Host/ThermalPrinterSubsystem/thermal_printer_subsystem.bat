@@ -1,2 +1,0 @@
-@echo off
-java ThermalPrinterClient
