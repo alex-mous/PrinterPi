@@ -117,7 +117,7 @@ public class ThermalPrinterClient {
 			SimpleDateFormat date = new SimpleDateFormat("-yyyy-MM-dd_HH-mm-ss");
 			fname = "I" + date.format(new Date());
 		}
-		fname += ".json";
+		fname = "Receipts/" + ".json";
 
 		FileWriter outf = new FileWriter(fname);
 		outf.write(pkt.toString());
