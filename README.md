@@ -115,7 +115,7 @@ Place a roll of paper on the pencil and feed it into the printer. ___Note: you m
 #### Install the host program
 First, download a copy of the GitHub code and place it in a safe location.
 ___Note: you will need to do the following operations on each client computer you would like to use with the printer.___
-Put the IP address from the Raspberry Pi in IP_ADDRESS.txt in the Host folder. You will then also need to compile the Java files. Please note that you will need Java installed on your computer.
+Put the IP address from the Raspberry Pi in IP_ADDRESS.txt in the Host folder. You can then either compile the Java files yourself, or use the precompiled ones supplied in the "Host Compiled" folder.
 After that is complete, run the installer.bat file. This will add a value to the registry that allows the Chrome Extension to communicate the ThermalPrinterClient program.
 #### Chrome Extension
 To install the Chrome Extension, navigate to <a href="chrome://extensions">chrome://extensions</a> and check the box in the upper right corner reading "Developer mode." After this, click the "Load unpacked" button, and select the folder containing the extension. Finally, after the extension appears, you can uncheck the "Developer mode" box.
