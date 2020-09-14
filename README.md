@@ -70,14 +70,14 @@ java -cp /home/pi Main&
 ```
 Finally, we need a logo for the receipt to print. Generate this from any size and color picture with the Python code in the Logo directory with the following steps:
 - Take a copy of your logo and place it into the Logo directory (rename it to Logo_in.png)
-- Next, open and run the Python program Image Processing.py
+- Next, open and run the Python program "Image Processing.py"
 - This will create a binary file, Logo.bin. You need to copy this file and place it into the directory with the other code on the Raspberry Pi for it to run
 
 If you do not have a logo, just create an empty file called Logo.bin on the Raspberry Pi in the same folder as the RPi Source code.
 
 #### Optional additional steps
 - Use HOSTNAME.local instead of an IP address, where HOSTNAME is the hostname set with raspi-config. This should work automatically on Macs and Linux/Unix computers. For Windows machines, you will need to install Bonjour. To implement this system, change the value in IP_ADDRESS.txt to HOSTNAME.local.</li>
-- Convert RPi to read-only to remove the need for power button and risk of SD card corruption such as at
+- Convert Raspberry Pi to read-only to remove the need for power button and risk of SD card corruption such as at
 	https://medium.com/@andreas.schallwig/how-to-make-your-raspberry-pi-file-system-read-only-raspbian-stretch-80c0f7be7353</li>
 
 ### Wiring
@@ -113,7 +113,7 @@ Place a roll of paper on the pencil and feed it into the printer. ___Note: you m
 
 ### Client Setup
 #### Install the host program
-First, download a copy of the Github code and place it in a safe location.
+First, download a copy of the GitHub code and place it in a safe location.
 ___Note: you will need to do the following operations on each client computer you would like to use with the printer.___
 Put the IP address from the Raspberry Pi in IP_ADDRESS.txt in the Host folder. You will then also need to compile the Java files. Please note that you will need Java installed on your computer.
 After that is complete, run the installer.bat file. This will add a value to the registry that allows the Chrome Extension to communicate the ThermalPrinterClient program.
@@ -125,8 +125,8 @@ To install the Chrome Extension, navigate to <a href="chrome://extensions">chrom
 Click on the extension on Google Chrome, navigate to either the eBay Print a shipping label page or the PayPal Activity page (make sure to open at least one transaction; the data gathered will appear if successful), ensure that the printer is up and running, and press the "Send Data" button. If all is well, a message "Successfully sent data to the printer" will appear, the printer's light will start flashing and the paper will print. If not, please see Troubleshooting below.
 #### Booting Up and Shutting Down
 On boot, the printer will flash its LED slowly to indicate that the printer is ready for use. When you want to shut it down, press and hold the power button until the LED turns off. Then disconnect the power supply.
-#### Note About PayPal
-Due to the multiple different types of data displayed on PayPal, the correct values may not be parsed, so they need to be checked before printing.
+#### Note
+Due to the multiple different types of data displayed on PayPal (and lack of data on eBay in the current version), the values may not be parsed correctly, so they need to be checked before printing.
 
 ### Troubleshooting
 #### LED not flashing after boot
@@ -138,13 +138,13 @@ Due to the multiple different types of data displayed on PayPal, the correct val
 - Check the wiring of the power button and note that you need to hold the power button down until the LED turns off. At this point, it is safe to remove power.
 #### Chrome Extension errors
 - Error 404
- - Printer not found. The IP address is not correct, or the printer is not up on the network. Double check the IP address of the Raspberry Pi is correct and that the printer is booting correctly (see above error "LED not flashing after boot")
+   - Printer not found. The IP address is not correct, or the printer is not up on the network. Double check the IP address of the Raspberry Pi is correct and that the printer is booting correctly (see above error "LED not flashing after boot")
 - Error 400
- - Bad request. The data sent was unable to be parsed by the client program. Check that the fields on the Chrome Extension popup under the "Data Gathered" section are complete.
+   - Bad request. The data sent was unable to be parsed by the client program. Check that the fields on the Chrome Extension popup under the "Data Gathered" section are complete.
 - Error 408
- - Something unexpected. Please contact me with the exact situation.
+   - Something unexpected. Please contact me with the exact situation. Often retrying solves the problem.
 - Stuck on "Sending data..."
- - If this is the first time running after installation, please double check that the host is installed correctly by going through the steps again. Additionally, rebooting your computer may help to finally update the registry change.
+   - If this is the first time running after installation, please double check that the host is installed correctly by going through the steps again. Additionally, rebooting your computer may help to finally update the registry change.
 
 ### License
 Copyright (C) 2020  PolarPiBerry

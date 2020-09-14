@@ -62,6 +62,8 @@ public class ThermalPrinterClient {
 			//Parse the JSON
 			Packet packet = parseData(raw);
 
+
+
 			//Generate a copy of the data
 			writeFileCopy(packet);
 
@@ -73,17 +75,18 @@ public class ThermalPrinterClient {
 			//Send the data
 			sendDataPacket(ip_addr, packet);
 	} catch (Exception e) {
+			try {
+				FileWriter outf = new FileWriter("error.txt");
+				outf.write(e.toString());
+				outf.close();
+			} catch (Exception err) {}
+
 			if (e instanceof ConnectException || e instanceof SocketTimeoutException) {
 				System.out.print("\u0003\u0000\u0000\u0000404"); //HTTP Error code (404 Not Found)
 			} else if (e instanceof IOException) {
 				System.out.print("\u0003\u0000\u0000\u0000400"); //HTTP Error code (400 Bad Request)
 			} else {
 				System.out.print("\u0003\u0000\u0000\u0000408"); //HTTP Error code (408 Request Timeout)
-				try {
-					FileWriter outf = new FileWriter("error.txt");
-					outf.write(e.getMessage());
-					outf.close();
-				} catch (Exception err) {}
 			}
 		}
 	}
@@ -93,8 +96,6 @@ public class ThermalPrinterClient {
 		//Open a socket connection to the printer
 		Socket conn = new Socket();
 		conn.connect(addr,1000); //Custom port 9321 - timeout of 1000ms
-//		PrintWriter output = new PrintWriter(conn.getOutputStream(), true); //output writer
-//		output.write(raw); //Send the raw JSON data
 		ObjectOutputStream output = new ObjectOutputStream(conn.getOutputStream());
 		output.writeObject(pkt);
 		System.out.print("\u0003\u0000\u0000\u0000200"); //HTTP Success code (200 OK)
@@ -113,7 +114,7 @@ public class ThermalPrinterClient {
 		if (fname.length() > 0) { //If there is data, trim the trailing comma
 			fname = fname.substring(0,fname.length()-1);
 		} else {
-			SimpleDateFormat date = new SimpleDateFormat("-dd-MM-yyyy_HH-mm-ss");
+			SimpleDateFormat date = new SimpleDateFormat("-yyyy-MM-dd_HH-mm-ss");
 			fname = "I" + date.format(new Date());
 		}
 		fname += ".json";
