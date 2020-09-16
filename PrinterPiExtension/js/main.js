@@ -20,10 +20,12 @@
 /**
  * Data packet
  * @typedef {Object} Packet
- * @property {string} address Address of the buyer
+ * @property {string} from Address of the seller
+ * @property {string} to Address of the buyer
  * @property {string} shipping Shipping paid by buyer
- * @property {string} total Subtotal paid by buyer (not including shipping)
+ * @property {string} subtotal Subtotal paid by buyer (not including shipping)
  * @property {Array<Item>} items Items purchased
+ * @property {Array<Item>} messages Messages to print out at bottom of receipt
  */
 
  /**
@@ -35,29 +37,19 @@
  * @property {string} qty Quantity purchased
  */
 
-let port = null;
-let host_name = "com.polarpiberry.thermal.printer.system";
+/*
+  Data format to send to PrinterPi (NOTE: item descs and skus MUST NOT CONTAIN ~ and NO EXTRA SPACES ARE ALLOWED):
 
-/**
- * Connect to the local application and send the data on the page if the inputs are valid
- * 
- * @function connectHost
- */
-let connectHost = () => {
-  if (validateInputs()) {
-    port = chrome.runtime.connectNative(host_name);
-    let done_msg = document.getElementById("done-msg");
-    port.onDisconnect.addListener(() => {
-      //done_msg.innerHTML = "Error while connecting to local messaging host."; //Default error message
-      //done_msg.classList = "text-danger";
-      port = null;
-    });
-    port.onMessage.addListener(onMessage);
-    done_msg.innerHTML = "Sending data...";
-    done_msg.classList = "text-warning";
-    sendData();
-  }
-}
+  To: Line1/n/Line2/n/Line3
+  From: Line1/n/Line2/n/Line3
+  Subtotal: $5.00
+  Shipping: $3.00
+  SaveFile: 1
+  Item: Item_1~I123~1~$1.00
+  Item: Item 2, And 3~I32-+A5~44~$1.00
+  Message: Contact me at eikyutsuho@gmail.com if you have any questions/concerns/n/Thank you for your business!
+
+*/
 
 /**
  * Read the data from the storage and show it on the page
@@ -87,34 +79,131 @@ let setStorageData = () => {
 }
 
 /**
+ * Get the settings from memory
+ * 
+ * @function getSettings
+ * @returns {Promise} Settings as a Promise
+ */
+let getSettings = () => {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get(["settings"], (data) => {
+      if (data && data.settings) {
+        resolve(data.settings);
+      } else {
+        reject("No settings");
+      }
+    });
+  });
+}
+
+/**
+ * Convert a Packet into a message
+ * 
+ * @function convertToMessage
+ * @param {Packet} pkt Packet
+ * @returns {string} Message
+ */
+let convertToMessage = (pkt) => {
+ /*
+    Data format (NOTE: item descs and skus MUST NOT CONTAIN ~ or ` and NO EXTRA SPACES ARE ALLOWED. ` Signifies end of transmission):
+
+    To: Line1/n/Line2/n/Line3
+    From: Line1/n/Line2/n/Line3
+    Subtotal: $5.00
+    Shipping: $3.00
+    Item: Item_1~I123~1~$1.00
+    Item: Item 2, And 3~I32-+A5~44~$1.00
+    Message: Contact me at eikyutsuho@gmail.com if you have any questions/concerns/n/Thank you for your business!
+    `
+  */
+  if (pkt.to != undefined && pkt.from != undefined && pkt.subtotal != undefined && pkt.shipping != undefined && pkt.messages != undefined && pkt.items != undefined) {
+    let msg = "";
+    msg += "To: " + pkt.to.split("\n").join("/n/") + "\r\n";
+    msg += "From: " + pkt.from.split("\n").join("/n/") + "\r\n";
+    msg += "Subtotal: " + pkt.subtotal + "\r\n";
+    msg += "Shipping: " + pkt.shipping + "\r\n";
+    pkt.items.forEach((item) => msg += "Item: " + item.desc.replace("~", " ") + "~" + item.sku.replace("~", " ") + "~" + item.qty + "~" + item.price + "\r\n");
+    msg += "Message: " + pkt.messages.split("\n").join("~") + "\r\n";
+    msg += "`";
+    return msg;
+  } else {
+    return null;
+  }
+}
+
+/**
  * Create the message from the data on the page and send it
  * 
  * @function sendData
  */
 let sendData = () => {
   let pkt = getData();
-  pkt.address = pkt.address.split("\n").join("/n/"); //Replace newline characters with custom notation
-  if (port) {
-	  port.postMessage(pkt);
-  }
+  let done_msg = document.getElementById("done-msg");
+  done_msg.innerHTML = "Sending data...";
+  done_msg.classList = "text-warning";
+  getSettings().then((settings) => {
+    pkt = {...pkt, ...settings};
+    let msg = convertToMessage(pkt);
+    if (msg) {
+      fetch("http://" + settings.ipAddress, {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain",
+        },
+        body: msg
+      }).then((res) => {
+        return res.json();
+      }).then((res) => {
+        console.log(res);
+        if (res.success) {
+          if (settings.saveFiles == "Y") {
+            downloadFile(pkt, settings.saveFilesLocation);
+          }
+          done_msg.innerHTML = "Successfully sent data to the printer";
+          done_msg.classList = "text-success";
+        } else {
+          done_msg.innerHTML = "Error on the printer - possible lack of data or transmission error";
+          done_msg.classList = "text-danger";
+        }
+      }).catch((err) => {
+        console.log(err);
+        done_msg.innerHTML = "Error while sending data to the printer! Please try again, make sure the printer is on and the server is up, or contact the developer";
+        done_msg.classList = "text-danger";
+      })
+    } else {
+      done_msg.innerHTML = "Please configure the printer settings in the Setting page below";
+      done_msg.classList = "text-danger";
+    }
+  });
 }
 
+
 /**
- * Event handler for the message returned by the local host after data is sent
+ * Download the data Packet onto the user's OS
  * 
- * @function onMessage
- * @param {string} msg Message - status code
+ * @param {Packet} pkt
  */
-let onMessage = (msg) => {
-	if (msg == "200") {
-    let done_msg = document.getElementById("done-msg");
-    done_msg.innerHTML = "Successfully sent data to the printer.";
-    done_msg.classList = "text-success";
-	} else {
-    let done_msg = document.getElementById("done-msg");
-    done_msg.innerHTML = "Error while sending data to the printer! Please try again, make sure the printer is on and the server is up, or contact the developer. Code: " + msg;
-    done_msg.classList = "text-danger";
-	}
+let downloadFile = (pkt, filepath) => {
+  let blob = new Blob([JSON.stringify(pkt)], {type: "application/json"});
+  let url = URL.createObjectURL(blob);
+  let item_skus = pkt.items.filter((item) => item.sku.length > 1);
+  let name;
+  if (item_skus.length > 1) {
+    name = item_skus.reduce((prev, curr, i) => {
+      return (i==1 ? prev.sku + "," + curr.sku : prev + "," + curr.sku);
+    });
+  } else if (item_skus.length == 1) {
+    name = item_skus[0].sku
+  } else {
+    name = "Packing List";
+  }
+  chrome.downloads.download({
+    url: url,
+    filename: filepath + "/" + name + ".json",
+    saveAs: name=="Packing List"
+  }, () => {
+    console.log("Download complete");
+  })
 }
 
 /**
@@ -139,8 +228,8 @@ let getData = () => { //Read the data from the HTML page
   }
 
   let pkt = {
-    address: document.getElementById("Address").value,
-    total: document.getElementById("Subtotal").value,
+    to: document.getElementById("Address").value,
+    subtotal: document.getElementById("Subtotal").value,
     shipping: document.getElementById("Shipping").value,
     items: items
   }
@@ -154,9 +243,9 @@ let getData = () => { //Read the data from the HTML page
  * @param {Packet} pkt Data packet
  */
 let setData = (pkt) => {
-  document.getElementById("Address").value = pkt.address;
+  document.getElementById("Address").value = pkt.to;
   document.getElementById('Shipping').value = pkt.shipping;
-  document.getElementById('Subtotal').value = pkt.total;
+  document.getElementById('Subtotal').value = pkt.subtotal;
   document.getElementById('items').innerHTML = ""; //Remove existing items
   pkt.items.forEach((item) => addItem(item));
 }
@@ -320,11 +409,17 @@ let addRowItems = () => { //Add an empty row to the table "items"
 	document.getElementById("items").appendChild(ele);
 }
 
+let showOptions = () => {
+  chrome.tabs.create({'url': "/options.html" } );
+}
+
+
 window.onload = () => { //Add event listeners
-  document.getElementById('run-button').addEventListener('click', connectHost);
+  document.getElementById('run-button').addEventListener('click', sendData);
   document.getElementById('save-button').addEventListener('click', setStorageData);
   document.getElementById('parse-button').addEventListener('click', () => chrome.extension.getBackgroundPage().chrome.tabs.executeScript(null, { file: './js/background.js' })); //Execute the background parsing script
-	document.getElementById("items-row-btn").addEventListener("click", addRowItems);
+  document.getElementById("items-row-btn").addEventListener("click", addRowItems);
+  document.getElementById("options-btn").addEventListener("click", showOptions);
 	document.getElementById('Shipping').addEventListener("change", validateInputs);
 	document.getElementById('Subtotal').addEventListener("change", validateInputs);
   document.getElementById('Address').addEventListener("change", validateInputs);
@@ -336,9 +431,9 @@ chrome.runtime.onMessage.addListener((msg) => { //Listen for messages and set th
     document.getElementById("more-info").innerHTML = "Manual entry mode - not a valid page to parse"; //Show the error message
   } else {
     setData({ //Set the data packet
-      address: msg.address,
+      to: msg.to,
       shipping: msg.shipping,
-      total: msg.total,
+      subtotal: msg.subtotal,
       items: msg.items,
     });
     validateInputs();

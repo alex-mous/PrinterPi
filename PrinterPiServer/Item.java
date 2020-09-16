@@ -1,5 +1,5 @@
 /*
- *    Packet.java - Data structure to hold a single print job. Contains the address, subtotal, total, shipping, and a set of items
+ *    Item.java - Data structure to hold one item - its price, description, quantity, and SKU
  *
  *    Copyright (C) 2020  PolarPiBerry
  *
@@ -17,27 +17,21 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import java.util.Set;
-import java.util.HashSet;
 import java.io.Serializable;
-import java.util.Arrays;
 
-public class Packet implements Serializable {
-	String[] address; //Address stored in separate lines
-	double subtotal;
-	double shipping;
-	double total;
-	Set<Item> items;
+public class Item implements Serializable {
+	public String desc, sku;
+	public double price;
+	public int qty;
 
-	public Packet(String[] address, double subtotal, double shipping, double total) {
-		this.address = address;
-		this.subtotal = subtotal;
-		this.shipping = shipping;
-		this.total = total;
-		this.items = new HashSet<Item>();
+	public Item(String desc, String sku, int qty, double price) {
+		this.desc = desc;
+		this.sku = sku;
+		this.qty = qty;
+		this.price = price;
 	}
 
 	public String toString() {
-		return "Address: " + Arrays.toString(this.address) + "\nSubtotal: " + this.subtotal + "\nShipping: " + this.shipping + "\nTotal: " + this.total + "\nItems: " + items;
+		return "Description: " + this.desc + " SKU: " + this.sku + " QTY: " + this.qty + " Price: " + this.price;
 	}
 }

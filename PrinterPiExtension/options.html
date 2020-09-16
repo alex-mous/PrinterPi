@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="./css/bootstrap.min.css">
+		<link rel="stylesheet" href="./css/font-awesome.min.css">
+	</head>
+	<body>
+		<form class="container py-2" style="max-width: 450px" id="settings-form">
+			<h3 class="title text-center font-weight-bold">PrinterPi Settings</h2>
+			<hr class="py-1 my-1">
+			<h6 class="text-center"><span id="info-msg">Loading...</span></h6>
+			<hr class="py-1 my-1">
+			<h5 class="text-center p-0 pt-1 m-0">From Address</h5>
+			<textarea class="form-control h-100" rows="4" name="from" id="form-from" required></textarea>
+			<h5 class="text-center p-0 pt-1 m-0">Receipt Message<p class="text-muted">(printed at bottom)</p></h5>
+			<textarea class="form-control h-100" rows="4" name="messages" id="form-messages" required></textarea>
+			<h5 class="text-center p-0 pt-1 m-0">Printer IP Address</h5>
+			<input type="text" class="form-control w-100" name="ipAddress" id="form-ipAddress" required />
+			<small class="form-text text-muted">
+				Please supply a valid IP address or domain name. An invalid IP/domain name will result in an error while connecting to the printer.
+			</small>
+			<h5 class="text-center p-0 pt-1 m-0">Save Receipts</h5>
+			<div class="w-100 text-center pt-1">
+				<div class="form-check form-check-inline">
+					<label class="form-check-label">
+						<input class="form-check-input" type="radio" name="saveFiles" id="form-saveFiles-Y" value="Y" />
+						Yes
+					</label>
+				</div>
+				<div class="form-check form-check-inline">
+					<label class="form-check-label">
+						<input class="form-check-input" type="radio" name="saveFiles" id="form-saveFiles-N" value="N" />
+						No
+					</label>
+				</div>
+			</div>
+			<div id="form-saveFilesLocation-show">
+				<label class="w-100">
+					<h6 class="text-center">Subdirectory of Download folder</h6>
+					<input type="text" class="form-control w-100 mb-0" name="saveFilesLocation" id="form-saveFilesLocation" required />
+				</label>
+				<small class="form-text text-muted mt-0 pb-0">
+					Please do not supply absolute paths or use back-references (".."). These will result in an error
+				</small>
+			</div>
+			<hr class="py-1 mt-2 mb-0">
+			<div class="px-3 py-1 row">
+				<button type="submit" class="btn btn-sm btn-success col mx-2">Save Settings</button>
+			</div>
+		</form>
+		<script src='./js/options.js'></script>
+		<script src='./js/jquery.min.js'></script>
+		<script src='./js/popper.min.js'></script>
+		<script src='./js/bootstrap.min.js'></script>
+	</body>
+</html>

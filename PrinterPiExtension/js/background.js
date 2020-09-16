@@ -33,9 +33,9 @@
 		});
 	}
 	chrome.runtime.sendMessage({ //Send the first data
-		address: address,
+		to: address,
 		shipping: shipping,
-		total: total,
+		subtotal: total,
 		items: item_arr
 	});
 } catch (TypeError) {
@@ -62,9 +62,9 @@
 		var addr = addr_block[0].innerText + "\n" + addr_block[1].innerText; //Combine the name and address
 
 		chrome.runtime.sendMessage({ //Send the first data
-			address: addr,
+			to: addr,
 			shipping: shipping,
-			total: total
+			subtotal: total
 		});
 
 		var items = trans_sub[0].getElementsByTagName("dd")[0].querySelectorAll(".item"); //Items section

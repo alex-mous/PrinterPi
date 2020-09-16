@@ -88,26 +88,21 @@ public class Printer {
 		write("Packing List");
 		cr();newline();
 		justify(0);
-/* This section is optional - fill in the details and recompile if you would like it added
 		style(0x88); //bold, underlined
 		write("From:");
 		cr();
 		style(0x00);
-		write("    ADDR_LINE_1");
-		cr();
-		write("    ADDR_LINE_2");
-		cr();
-		write("    ADDR_LINE_3");
-		cr();
-		write("    ADDR_LINE_4");
-		cr();newline();  
-*/
+		for (String line: packet.from) {
+			write("    ");
+			printSplitString(line, 4);
+			cr();
+		}
 		style(0x88);
 		write("To:");
 		cr();
 		style(0x00);
 		justify(0);
-		for (String line : packet.address) {
+		for (String line: packet.to) {
 			write("    ");
 			printSplitString(line, 4);
 			cr();
@@ -125,7 +120,7 @@ public class Printer {
 		cr();newline();
 		style(0x00); //Clear
 		int c = 1;
-		for (Item item : packet.items) {
+		for (Item item: packet.items) {
 			write(c + ".  ");
 			printSplitString(item.desc, 4); //Use helper function to make sure item description fits well
 			cr();
@@ -133,7 +128,7 @@ public class Printer {
 			cr(); newline();
 			c++;
 		}
-		cr(); newline();
+		cr();newline();
 		style(0x88); //Bold, underline
 		write("Subtotal:");
 		style(0x00); //Clear
@@ -152,9 +147,10 @@ public class Printer {
 		cr();
 		write("    $" + String.format("%.2f",packet.total));
 		cr();newline();
-		style(0x08); //Bold
-		write("Thank you for your business!");
-		style(0x00); //Clear
+		for (String line: packet.messages) {
+			write(line);
+			cr();newline();
+		}
 		cut();
 	}
 

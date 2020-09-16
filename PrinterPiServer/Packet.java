@@ -19,25 +19,26 @@
 
 import java.util.Set;
 import java.util.HashSet;
-import java.io.Serializable;
 import java.util.Arrays;
 
-public class Packet implements Serializable {
-	String[] address; //Address stored in separate lines
-	double subtotal;
-	double shipping;
-	double total;
-	Set<Item> items;
+public class Packet {
+	public String[] to; //Address stored in separate lines
+	public String[] from;
+	public double subtotal;
+	public double shipping;
+	public double total;
+	public Set<Item> items;
+	public String[] messages;
 
-	public Packet(String[] address, double subtotal, double shipping, double total) {
-		this.address = address;
-		this.subtotal = subtotal;
-		this.shipping = shipping;
-		this.total = total;
+	public Packet() {
 		this.items = new HashSet<Item>();
 	}
 
+	public boolean isComplete() { //Check if the packet is complete
+		return to != null && from != null && total != 0 && this.items.size() != 0 && this.messages != null;
+	}
+
 	public String toString() {
-		return "Address: " + Arrays.toString(this.address) + "\nSubtotal: " + this.subtotal + "\nShipping: " + this.shipping + "\nTotal: " + this.total + "\nItems: " + items;
+		return "From: " + Arrays.toString(this.from) +  "\nTo: " + Arrays.toString(this.to) + "\nSubtotal: " + this.subtotal + "\nShipping: " + this.shipping + "\nTotal: " + this.total + "\nItems: " + items;
 	}
 }
