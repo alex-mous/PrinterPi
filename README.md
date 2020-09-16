@@ -43,17 +43,21 @@ Interfacing Options -> SSH | Enable
 Interfacing Options -> Serial</td><td>Disable console, enable serial
 Boot Options -> Desktop/CLI -> Console Autologin</td><td>Enable this so that the script will run automatically
 
-Now we need to install Java on the Raspberry Pi. Run the following commands to do this:
+Now, you can either use the precompiled code from the Releases page. (You may need to install the Java Runtime Environment with `sudo apt-get install default-jre`), or compile the code yourself using the method below:
+
+To compile the code, we need to install Java on the Raspberry Pi.  Run the following commands to do this:
 ```
 sudo apt-get update
 sudo apt-get install openjdk-8-jdk -y
 ```
-Finally, download a copy of the code in the "RPi Source" directory in this repository and place the files in the home directory of the Raspberry Pi.
+Finally, download a copy of the code in the "PrinterPiServer" directory in this repository and place the files in the home directory of the Raspberry Pi.
 
 You will need to compile the code before it can run; this can be done with the following command:
 ```
 javac *.java
 ```
+
+(*continue here if using precompiled code*)
 Additionally, we need to make the power button management script executable with the following command:
 ```
 sudo chmod +x power_button.sh
@@ -73,7 +77,7 @@ Finally, we need a logo for the receipt to print. Generate this from any size an
 - Next, open and run the Python program "Image Processing.py"
 - This will create a binary file, Logo.bin. You need to copy this file and place it into the directory with the other code on the Raspberry Pi for it to run
 
-If you do not have a logo, just create an empty file called Logo.bin on the Raspberry Pi in the same folder as the RPi Source code.
+If you do not have a logo, just create an empty file called Logo.bin on the Raspberry Pi in the same folder as the PrinterPiServer code.
 
 #### Optional additional steps
 - Use HOSTNAME.local instead of an IP address, where HOSTNAME is the hostname set with raspi-config. This should work automatically on Macs and Linux/Unix computers. For Windows machines, you will need to install Bonjour. To implement this system, change the value in IP_ADDRESS.txt to HOSTNAME.local.</li>
@@ -111,18 +115,12 @@ To keep the paper roll easily accessible, use a pencil as a roll holder. First, 
 #### Final Steps
 Place a roll of paper on the pencil and feed it into the printer. ___Note: you may need to install some tape to prevent paper from curling up in the gap between the printer's output and the lid.___ Finally slide on the lid, and it should click into place (if not, sand and trim until it fits).
 
-### Client Setup
-#### Install the host program
-First, download a copy of the GitHub code and place it in a safe location.
-___Note: you will need to do the following operations on each client computer you would like to use with the printer.___
-Put the IP address from the Raspberry Pi in IP_ADDRESS.txt in the Host folder. You can then either compile the Java files yourself, or use the precompiled ones supplied in the "Host Compiled" folder.
-After that is complete, run the installer.bat file. This will add a value to the registry that allows the Chrome Extension to communicate the ThermalPrinterClient program.
-#### Chrome Extension
-To install the Chrome Extension, navigate to <a href="chrome://extensions">chrome://extensions</a> and check the box in the upper right corner reading "Developer mode." After this, click the "Load unpacked" button, and select the folder containing the extension. Finally, after the extension appears, you can uncheck the "Developer mode" box.
+### Client Setup - Chrome Extension
+To install the Chrome Extension, navigate to <a href="chrome://extensions">chrome://extensions</a> and check the box in the upper right corner reading "Developer mode." After this, click the "Load unpacked" button, and select the folder containing the extension. Finally, after the extension appears, you can uncheck the "Developer mode" box. Instead, this application is pending review in the Chrome Store, and may become available.
 
 ### Usage
 #### Printing
-Click on the extension on Google Chrome, navigate to either the eBay Print a shipping label page or the PayPal Activity page (make sure to open at least one transaction; the data gathered will appear if successful), ensure that the printer is up and running, press the "Parse Data" button to read the data off of the webpage, and finally press the "Print" button. If all is well, a message "Successfully sent data to the printer" will appear, the printer's light will start flashing and the paper will print. If not, please see Troubleshooting below. Also, there is a "Save Data" button to save the data into the extension, so that when it is reopened, the same settings will show.
+Click on the extension on Google Chrome, navigate to either the eBay Print a shipping label page or the PayPal Activity page (make sure to open at least one transaction; the data gathered will appear if successful), ensure that the printer is up and running, press the "Parse Data" button to read the data off of the webpage, and finally press the "Print" button. If all is well, a message "Successfully sent data to the printer" will appear, the printer's light will start flashing and the paper will print. If not, please see Troubleshooting below. Also, there is a "Save Data" button to save the data into the extension, so that when it is reopened, the same settings will show. *Note: before using the printer for the first time, you will need to set up the options. Navigate to this page by using the button at the very bottom of the Chrome Extension and fill in the fields as directed (including the IP address from earlier)*
 #### Booting Up and Shutting Down
 On boot, the printer will flash its LED slowly to indicate that the printer is ready for use. When you want to shut it down, press and hold the power button until the LED turns off. Then disconnect the power supply.
 #### Note
@@ -137,14 +135,7 @@ Due to the multiple different types of data displayed on PayPal (and lack of dat
 #### Power button not shutting down the Raspberry Pi
 - Check the wiring of the power button and note that you need to hold the power button down until the LED turns off. At this point, it is safe to remove power.
 #### Chrome Extension errors
-- Error 404
-   - Printer not found. The IP address is not correct, or the printer is not up on the network. Double check the IP address of the Raspberry Pi is correct and that the printer is booting correctly (see above error "LED not flashing after boot")
-- Error 400
-   - Bad request. The data sent was unable to be parsed by the client program. Check that the fields on the Chrome Extension popup under the "Data Gathered" section are complete.
-- Error 408
-   - Something unexpected. Please contact me with the exact situation. Often retrying solves the problem.
-- Stuck on "Sending data..."
-   - If this is the first time running after installation, please double check that the host is installed correctly by going through the steps again. Additionally, rebooting your computer may help to finally update the registry change.
+- Try checking the Options, reinstalling the extension (and looking at the JavaScript console) or running the PrinterPiServer code on the Raspberry Pi in a console and watching the output.
 
 ### License
 Copyright (C) 2020  PolarPiBerry
