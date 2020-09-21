@@ -27,14 +27,23 @@
  */
 
  /**
- * User Settings
+  * Logo object
+  * @typedef {Object} Logo
+  * @property {string} data Image data
+  * @property {number} width Image width
+  * @property {number} height Image height
+  */
+
+/**
+ * Settings object
  * @typedef {Object} Settings
  * @property {string} ipAddress IP of printer
  * @property {string} from Address of seller
- * @property {string} fromLogo Name of return address logo (if any)
+ * @property {Logo} fromLogo Return address logo (if any)
  * @property {string} messages Messages to add to receipt
- * @property {boolean} saveFiles Save copies of receipts
+ * @property {string} saveFiles Save copies of receipts ("Y" for yes, "N" for no)
  * @property {string} saveFilesLocation Path to where to save copies of receipts
+ * @property {string} autoParse Automatically parse page if the page is valid ("Y" for yes, "N" for no)
  */
 
 /**
@@ -471,7 +480,7 @@ let getXButton = () => {
 }
 
 /**
- *  //Add an empty row to the table #items
+ * Add an empty row to the table #items
  * 
  * @function addRowItems
  */
@@ -484,8 +493,22 @@ let addRowItems = () => { //Add an empty row to the table "items"
 	document.getElementById("items").appendChild(ele);
 }
 
+/**
+ * Show the Options page in a new tab
+ * 
+ * @function showOptions
+ */
 let showOptions = () => {
   chrome.tabs.create({'url': "/options.html" } );
+}
+
+/**
+ * Parse the webpage (run the background script, which triggers runtime.onMessage events - see below)
+ * 
+ * @function parsePage
+ */
+let parsePage = () => {
+  chrome.extension.getBackgroundPage().chrome.tabs.executeScript(null, { file: './js/background.js' }); //Try to run the background script
 }
 
 
@@ -500,23 +523,31 @@ window.onload = () => { //Add event listeners, etc.
       let pkt = getPacket(settings);
       if (pkt) printEnvelope(pkt);
     });
-  }).catch(() => {
+
+    if (settings.autoParse == "Y") {
+      parsePage();
+    } else {
+      readStorageData(); //Read the current data and display it
+    }
+  }).catch((err) => {
+    console.log("Error while getting settings: " + err);
+    let done_msg = document.getElementById("done-msg");
     done_msg.innerHTML = "Please configure the printer settings in the Setting page (via the button PrinterPi Settings below)";
     done_msg.classList = "text-danger";
   });
   document.getElementById('save-button').addEventListener('click', setStorageData);
-  document.getElementById('parse-button').addEventListener('click', () => chrome.extension.getBackgroundPage().chrome.tabs.executeScript(null, { file: './js/background.js' })); //Execute the background parsing script
+  document.getElementById('parse-button').addEventListener('click', () => parsePage); //Execute the background parsing script
   document.getElementById("items-row-btn").addEventListener("click", addRowItems);
   document.getElementById("options-btn").addEventListener("click", showOptions);
 	document.getElementById('Shipping').addEventListener("change", validateInputs);
 	document.getElementById('Subtotal').addEventListener("change", validateInputs);
   document.getElementById('Address').addEventListener("change", validateInputs);
-  readStorageData(); //Read the current data and display it
 }
 
 chrome.runtime.onMessage.addListener((msg) => { //Listen for messages and set the data accordingly
   if (msg.error != null) { //Error message from background script
-    document.getElementById("more-info").innerHTML = "Manual entry mode - not a valid page to parse"; //Show the error message
+    document.getElementById("more-info").innerHTML = "Not a valid page to parse - showing stored data"; //Show the error message
+    readStorageData(); //Default to storage
   } else {
     setData({ //Set the data packet
       to: msg.to,
