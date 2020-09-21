@@ -17,19 +17,8 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/**
- * Data packet
- * @typedef {Object} Packet
- * @property {string} from Address of the seller
- * @property {string} to Address of the buyer
- * @property {string} shipping Shipping paid by buyer
- * @property {string} subtotal Subtotal paid by buyer (not including shipping)
- * @property {Array<Item>} items Items purchased
- * @property {Array<Item>} messages Messages to print out at bottom of receipt
- */
-
  /**
- * Item object
+ * Sold Item
  * @typedef {Object} Item
  * @property {string} desc Title of item
  * @property {string} price Price paid (total)
@@ -37,8 +26,31 @@
  * @property {string} qty Quantity purchased
  */
 
+ /**
+ * User Settings
+ * @typedef {Object} Settings
+ * @property {string} ipAddress IP of printer
+ * @property {string} from Address of seller
+ * @property {string} fromLogo Name of return address logo (if any)
+ * @property {string} messages Messages to add to receipt
+ * @property {boolean} saveFiles Save copies of receipts
+ * @property {string} saveFilesLocation Path to where to save copies of receipts
+ */
+
+/**
+ * Data Packet (containing all information needed to create a recipt, envelope, and saved copy)
+ * @typedef {Object} Packet
+ * @property {string} to Address of the buyer
+ * @property {string} shipping Shipping paid by buyer
+ * @property {string} subtotal Subtotal paid by buyer (not including shipping)
+ * @property {Array<Item>} items Items purchased
+ * @property {Settings} settings User settings as defined above
+ */
+
+
+
 /*
-  Data format to send to PrinterPi (NOTE: item descs and skus MUST NOT CONTAIN ~ and NO EXTRA SPACES ARE ALLOWED):
+  Data format to send to PrinterPi (NOTE: item descs and skus MUST NOT CONTAIN ~ and NO EXTRA SPACES ARE ALLOWED before/after parameters):
 
   To: Line1/n/Line2/n/Line3
   From: Line1/n/Line2/n/Line3
@@ -57,7 +69,7 @@
  * @function readStorageData
  */
 let readStorageData = () => {
-  chrome.storage.sync.get(["data"], (res) => {
+  chrome.storage.local.get(["data"], (res) => {
     if (res.data) {
       setData(res.data);
       document.getElementById("more-info").innerHTML = "Data read from storage";
@@ -72,7 +84,7 @@ let readStorageData = () => {
  */
 let setStorageData = () => {
   if (validateInputs()) {
-    chrome.storage.sync.set({data: getData()}, () => {
+    chrome.storage.local.set({data: getData()}, () => {
       document.getElementById("more-info").innerHTML = "Data saved";
     });
   }
@@ -86,7 +98,7 @@ let setStorageData = () => {
  */
 let getSettings = () => {
   return new Promise((resolve, reject) => {
-    chrome.storage.sync.get(["settings"], (data) => {
+    chrome.storage.local.get(["settings"], (data) => {
       if (data && data.settings) {
         resolve(data.settings);
       } else {
@@ -116,75 +128,74 @@ let convertToMessage = (pkt) => {
     Message: Contact me at eikyutsuho@gmail.com if you have any questions/concerns/n/Thank you for your business!
     `
   */
-  if (pkt.to != undefined && pkt.from != undefined && pkt.subtotal != undefined && pkt.shipping != undefined && pkt.messages != undefined && pkt.items != undefined) {
-    let msg = "";
-    msg += "To: " + pkt.to.split("\n").join("/n/") + "\r\n";
-    msg += "From: " + pkt.from.split("\n").join("/n/") + "\r\n";
-    msg += "Subtotal: " + pkt.subtotal + "\r\n";
-    msg += "Shipping: " + pkt.shipping + "\r\n";
-    pkt.items.forEach((item) => msg += "Item: " + item.desc.replace("~", " ") + "~" + item.sku.replace("~", " ") + "~" + item.qty + "~" + item.price + "\r\n");
-    msg += "Message: " + pkt.messages.split("\n").join("~") + "\r\n";
-    msg += "`";
-    return msg;
+  let msg = "";
+  msg += "To: " + pkt.to.split("\n").join("/n/") + "\r\n";
+  msg += "From: " + pkt.settings.from.split("\n").join("/n/") + "\r\n";
+  msg += "Subtotal: " + pkt.subtotal + "\r\n";
+  msg += "Shipping: " + pkt.shipping + "\r\n";
+  pkt.items.forEach((item) => msg += "Item: " + item.desc.replace("~", " ") + "~" + item.sku.replace("~", " ") + "~" + item.qty + "~" + item.price + "\r\n");
+  msg += "Message: " + pkt.settings.messages.split("\n").join("~") + "\r\n";
+  msg += "`";
+  return msg;
+}
+
+/**
+ * Create the message from the data Packet and send it
+ * 
+ * @function sendData
+ * @param {Packet} pkt Data Packet
+ */
+let sendData = (pkt) => {
+  if (pkt) {
+    let done_msg = document.getElementById("done-msg");
+    done_msg.innerHTML = "Sending data...";
+    done_msg.classList = "text-warning";
+    let msg = convertToMessage(pkt);
+    fetch("http://" + pkt.settings.ipAddress, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain",
+      },
+      body: msg
+    }).then((res) => {
+      return res.json();
+    }).then((res) => {
+      console.log(res);
+      if (res.success) {
+        if (pkt.settings.saveFiles == "Y") {
+          downloadFile(pkt, pkt.settings.saveFilesLocation);
+        }
+        done_msg.innerHTML = "Successfully sent data to the printer";
+        done_msg.classList = "text-success";
+      } else {
+        done_msg.innerHTML = "Error on the printer - possible lack of data or transmission error";
+        done_msg.classList = "text-danger";
+      }
+    }).catch((err) => {
+      console.log(err);
+      done_msg.innerHTML = "Error while sending data to the printer! Please try again, make sure the printer is on and the server is up, or contact the developer";
+      done_msg.classList = "text-danger";
+    })
   } else {
-    return null;
+    done_msg.innerHTML = "Invalid data supplied. Please check the Settings and the data on the page";
+    done_msg.classList = "text-danger";
   }
 }
 
-/**
- * Create the message from the data on the page and send it
- * 
- * @function sendData
- */
-let sendData = () => {
-  let pkt = getData();
-  let done_msg = document.getElementById("done-msg");
-  done_msg.innerHTML = "Sending data...";
-  done_msg.classList = "text-warning";
-  getSettings().then((settings) => {
-    pkt = {...pkt, ...settings};
-    let msg = convertToMessage(pkt);
-    if (msg) {
-      fetch("http://" + settings.ipAddress, {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain",
-        },
-        body: msg
-      }).then((res) => {
-        return res.json();
-      }).then((res) => {
-        console.log(res);
-        if (res.success) {
-          if (settings.saveFiles == "Y") {
-            downloadFile(pkt, settings.saveFilesLocation);
-          }
-          done_msg.innerHTML = "Successfully sent data to the printer";
-          done_msg.classList = "text-success";
-        } else {
-          done_msg.innerHTML = "Error on the printer - possible lack of data or transmission error";
-          done_msg.classList = "text-danger";
-        }
-      }).catch((err) => {
-        console.log(err);
-        done_msg.innerHTML = "Error while sending data to the printer! Please try again, make sure the printer is on and the server is up, or contact the developer";
-        done_msg.classList = "text-danger";
-      })
-    } else {
-      done_msg.innerHTML = "Please configure the printer settings in the Setting page below";
-      done_msg.classList = "text-danger";
-    }
-  });
-}
-
 
 /**
- * Download the data Packet onto the user's OS
+ * Download the data Packet onto the user's OS (only select options [to, shipping, subtotal and items] are used)
  * 
+ * @function downloadFile
  * @param {Packet} pkt
  */
 let downloadFile = (pkt, filepath) => {
-  let blob = new Blob([JSON.stringify(pkt)], {type: "application/json"});
+  let blob = new Blob([JSON.stringify({
+    to: pkt.to,
+    shipping: pkt.shipping,
+    subtotal: pkt.subtotal,
+    items: pkt.items
+  })], {type: "application/json"});
   let url = URL.createObjectURL(blob);
   let item_skus = pkt.items.filter((item) => item.sku.length > 1);
   let name;
@@ -207,10 +218,58 @@ let downloadFile = (pkt, filepath) => {
 }
 
 /**
+ * Generate and print a JSPDF PDF document envelope
+ * 
+ * @function printEnvelope
+ * @param {Packet} pkt Packet to use for envelope PDF
+ */
+let printEnvelope = (pkt) => {
+  let pdf = new window.jspdf.jsPDF({
+    orientation: "landscape",
+    format: "a4",
+    unit: "mm"
+  });
+  //To address block is at (190, 120) (text centered at 190)
+  //From address block is at (68.5, 65)
+  
+  let wFrom = 0; //Width of from address
+  let wTo = 0; //Width of to address
+  let from = pkt.settings.from.split("\n");
+  let to = pkt.to.split("\n");
+  from.forEach((v) => wFrom = Math.max(wFrom, v.length)); //Find longest line and get width
+  to.forEach((v) => wTo = Math.max(wTo, v.length)); //Find longest line and get width
+
+  let hBox = from.length * 5; //Height of enclosing box
+  let wBox = wFrom*2+4;
+  let hImg = 0; let wImg = 0; //Dimensions of image (if any)
+
+  pdf.setLineWidth(0.5);
+  let fromLogo = pkt.settings.fromLogo;
+  if (fromLogo) { //Image to add
+    if (fromLogo.height*2 > fromLogo.width) { //Height is larger than half of the width - show next to address as opposed to on top
+      wImg = hBox * pkt.settings.fromLogo.width / pkt.settings.fromLogo.height;
+      pdf.line(68.5+wImg, 65, 68.5+wImg, 65+hBox); //Add line under box
+      pdf.addImage(pkt.settings.fromLogo.data, "JPEG", 68.75, 65.25, wImg-0.5, hBox-0.5);
+    } else {
+      hImg = wBox * pkt.settings.fromLogo.height / pkt.settings.fromLogo.width;
+      pdf.line(68.5, 65+hImg, 68.5+wBox, 65+hImg); //Add line under box
+      pdf.addImage(pkt.settings.fromLogo.data, "JPEG", 68.75, 65.25, wBox-0.5, hImg-0.5);
+    }
+  }
+  pdf.roundedRect(68.5, 65, wBox+wImg, hBox+hImg, 1, 1); //Add enclosing box
+  pdf.setFontSize(10.5);
+  pdf.text(from, 68.5+wBox/2+wImg, 65+5+hImg, {align: "center", lineHeightFactor: "1.1"}); //Add from address
+  
+  pdf.setFontSize(12);
+  pdf.text(to, 170+wFrom, 110.2, {align: "center", lineHeightFactor: "1.1"});
+  window.open(pdf.output("bloburl")).print(); //Open window and print
+}
+
+/**
  * Get the data from the page and return it in as a Packet
  * 
  * @function getData
- * @returns {Packet} Data packet
+ * @returns {Object} Page data
  */
 let getData = () => { //Read the data from the HTML page
   let items = [];
@@ -227,13 +286,29 @@ let getData = () => { //Read the data from the HTML page
     }
   }
 
-  let pkt = {
+  let data = {
     to: document.getElementById("Address").value,
     subtotal: document.getElementById("Subtotal").value,
     shipping: document.getElementById("Shipping").value,
     items: items
   }
-  return pkt;
+  return data;
+}
+
+/**
+ * Get the complete data Packet
+ * 
+ * @param {Object} settings Object containing user settings
+ * @returns {Packet} Data Packet
+ */
+let getPacket = (settings) => {
+  if (validateInputs()) {
+    let data = getData();
+    let pkt = {...data, settings: settings};
+    return pkt;
+  } else {
+    return null;
+  }
 }
 
 /**
@@ -345,13 +420,13 @@ let validateInputs = () => {
   }
 
   if (err_msg) { //Display any errors and disable the submit button
-    document.getElementById("run-button").disabled = true;
+    document.getElementById("print-button").disabled = true;
     let done_msg = document.getElementById("done-msg");
     done_msg.innerHTML = err_msg;
     done_msg.classList = "text-danger";
     return false;
   } else { //No errors - remove any lock on the submit button
-    document.getElementById("run-button").disabled = false;
+    document.getElementById("print-button").disabled = false;
     let done_msg = document.getElementById("done-msg");
     done_msg.innerHTML = "Not connected";
     done_msg.classList = "text-info";
@@ -414,8 +489,21 @@ let showOptions = () => {
 }
 
 
-window.onload = () => { //Add event listeners
-  document.getElementById('run-button').addEventListener('click', sendData);
+
+window.onload = () => { //Add event listeners, etc.
+  getSettings().then((settings) => { //Read the settings and adjust accordingly
+    document.getElementById('print-button').addEventListener('click', () => { //Get the data packet and send it
+      let pkt = getPacket(settings);
+      if (pkt) sendData(pkt);
+    });
+    document.getElementById('envelope-button').addEventListener('click', () => { //Get the data packet and print it
+      let pkt = getPacket(settings);
+      if (pkt) printEnvelope(pkt);
+    });
+  }).catch(() => {
+    done_msg.innerHTML = "Please configure the printer settings in the Setting page (via the button PrinterPi Settings below)";
+    done_msg.classList = "text-danger";
+  });
   document.getElementById('save-button').addEventListener('click', setStorageData);
   document.getElementById('parse-button').addEventListener('click', () => chrome.extension.getBackgroundPage().chrome.tabs.executeScript(null, { file: './js/background.js' })); //Execute the background parsing script
   document.getElementById("items-row-btn").addEventListener("click", addRowItems);

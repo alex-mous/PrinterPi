@@ -10,16 +10,36 @@
 			<hr class="py-1 my-1">
 			<h6 class="text-center"><span id="info-msg">Loading...</span></h6>
 			<hr class="py-1 my-1">
-			<h5 class="text-center p-0 pt-1 m-0">From Address</h5>
+			<h5 class="text-center p-0 pt-1 m-0">Return Address</h5>
 			<textarea class="form-control h-100" rows="4" name="from" id="form-from" required></textarea>
-			<h5 class="text-center p-0 pt-1 m-0">Receipt Message<p class="text-muted">(printed at bottom)</p></h5>
+			<hr class="py-1 mt-2 mb-0">
+			<h5 class="text-center p-0 pt-3 m-0">Return Address Custom Envelope Logo</h5>
+			<div class="input-group mb-3">
+				<div class="custom-file">
+				  <input type="file" class="custom-file-input" accept="image/png, image/jpeg" name="fromLogo" id="form-from-logo">
+				  <label class="custom-file-label" for="form-from-logo" id="form-from-logo-label">Choose a logo (optional)</label>
+				</div>
+				<div class="input-group-append">
+					<button class="btn btn-secondary" type="button" id="form-from-logo-clear">Clear Logo</button>
+				</div>
+			</div>
+			<small class="form-text text-muted mt-0 pb-0">
+				Upload an image file to print at the top of the return address. Note that transparency in PNGs will become black. To remove the logo, click Clear Logo or upload a new one in its place.
+			</small>
+			<hr class="py-1 mt-2 mb-0">
+			<h5 class="text-center p-0 pt-1 m-0">Receipt Message</h5>
 			<textarea class="form-control h-100" rows="4" name="messages" id="form-messages" required></textarea>
-			<h5 class="text-center p-0 pt-1 m-0">Printer IP Address</h5>
+			<small class="form-text text-muted mt-0 pb-0">
+				This is the message that will be printed at the bottom of the receipt. Newlines will be doubled (forming paragraph spacing)
+			</small>
+			<hr class="py-1 mt-2 mb-0">
+			<h5 class="text-center p-0 pt-3 m-0">Printer IP Address</h5>
 			<input type="text" class="form-control w-100" name="ipAddress" id="form-ipAddress" required />
 			<small class="form-text text-muted">
 				Please supply a valid IP address or domain name. An invalid IP/domain name will result in an error while connecting to the printer.
 			</small>
-			<h5 class="text-center p-0 pt-1 m-0">Save Receipts</h5>
+			<hr class="py-1 mt-2 mb-0">
+			<h5 class="text-center p-0 pt-3 m-0">Save Receipts</h5>
 			<div class="w-100 text-center pt-1">
 				<div class="form-check form-check-inline">
 					<label class="form-check-label">
@@ -43,6 +63,26 @@
 					Please do not supply absolute paths or use back-references (".."). These will result in an error
 				</small>
 			</div>
+			<hr class="py-1 mt-2 mb-0">
+			<h5 class="text-center p-0 pt-3 m-0">Automatic Page Parsing</h5>
+			<p class="text-center text-muted m-0 p-0">(automatically read if valid)</p>
+			<div class="w-100 text-center pt-1">
+				<div class="form-check form-check-inline">
+					<label class="form-check-label">
+						<input class="form-check-input" type="radio" name="autoParse" id="form-autoParse-Y" value="Y" />
+						Yes
+					</label>
+				</div>
+				<div class="form-check form-check-inline">
+					<label class="form-check-label">
+						<input class="form-check-input" type="radio" name="autoParse" id="form-autoParse-N" value="N" />
+						No
+					</label>
+				</div>
+			</div>
+			<small class="form-text text-muted mt-0 pb-0">
+				Automatically parse page if the data on it is valid. If not, the stored data will be displayed.
+			</small>
 			<hr class="py-1 mt-2 mb-0">
 			<div class="px-3 py-1 row">
 				<button type="submit" class="btn btn-sm btn-success col mx-2">Save Settings</button>

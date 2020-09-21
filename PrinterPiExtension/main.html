@@ -16,13 +16,17 @@
 			</h5>
 			<hr class="py-1 my-1">
 			<h6 class="text-info text-center" id="more-info"></h6>
-			<div class="px-5 py-1">
-				<button class="btn btn-primary w-100" id='run-button'>Print</button>
+			<div class="px-5 py-1 row">
+				<button class="btn btn-primary col mx-4" id='print-button'>Print Receipt</button>
 			</div>
-			<div class="px-3 py-1 row">
+			<div class="px-5 py-1 row">
+				<button class="btn btn-sm btn-primary col mx-4" id='envelope-button'>Print Envelope</button>
+			</div>
+			<div class="px-3 py-2 row">
 				<button class="btn btn-sm btn-warning col mx-2" id='parse-button'>Parse Data</button>
 				<button class="btn btn-sm btn-success col mx-2" id='save-button'>Save Data</button>
 			</div>
+
 			<hr class="py-1 my-1">
 			<h5 class="text-center p-0 pt-1 m-0">Address</h5>
 			<textarea class="form-control h-100" rows="4" id="Address"></textarea>
@@ -58,6 +62,7 @@
 			</div>
 			<hr class="py-1 mt-2 mb-0">
 		</div>
+		<script src='./js/jspdf.umd.min.js'></script>
 		<script src='./js/main.js'></script>
 		<script src='./js/jquery.min.js'></script>
 		<script src='./js/popper.min.js'></script>
