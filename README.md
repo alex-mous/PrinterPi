@@ -116,7 +116,7 @@ To keep the paper roll easily accessible, use a pencil as a roll holder. First, 
 Place a roll of paper on the pencil and feed it into the printer. ___Note: you may need to install some tape to prevent paper from curling up in the gap between the printer's output and the lid.___ Finally slide on the lid, and it should click into place (if not, sand and trim until it fits).
 
 ### Client Setup - Chrome Extension
-To install the Chrome Extension, navigate to <a href="chrome://extensions">chrome://extensions</a> and check the box in the upper right corner reading "Developer mode." After this, click the "Load unpacked" button, and select the folder containing the extension. Finally, after the extension appears, you can uncheck the "Developer mode" box. Instead, this application is pending review in the Chrome Store, and may become available.
+To install the Chrome Extension, navigate to <a href="chrome://extensions">chrome://extensions</a> and check the box in the upper right corner reading "Developer mode." After this, click the "Load unpacked" button, and select the folder containing the extension. Finally, after the extension appears, you can uncheck the "Developer mode" box. Also, this extension can be installed <a href="https://chrome.google.com/webstore/detail/printerpi/dgmejpjohdfgiolaailhklbbkfchidkl?hl=en-US">from the Chrome Extension Store.</a> *(Note: this extension may be a previous version, so please check the versions before installing)*
 
 ### Usage
 #### Printing
@@ -124,7 +124,7 @@ Click on the extension on Google Chrome, navigate to either the eBay Print a shi
 #### Booting Up and Shutting Down
 On boot, the printer will flash its LED slowly to indicate that the printer is ready for use. When you want to shut it down, press and hold the power button until the LED turns off. Then disconnect the power supply.
 #### Note
-Due to the multiple different types of data displayed on PayPal (and lack of data on eBay in the current version), the values may not be parsed correctly, so they need to be checked before printing.
+Due to some insufficiencies with the PayPal and eBay GUIs the SKUs cannot currently be parsed nor the quantity on PayPal so these need to be manually entered.
 
 ### Troubleshooting
 #### LED not flashing after boot
