@@ -28,8 +28,8 @@
 		item_arr.push({
 			desc: itm.children[0].innerText,
 			sku: "I",
-			qty: itm.children[1].children[0].innerText.slice(5),
-			price: itm.children[1].children[1].innerText
+			qty: itm.children[1].innerText.slice(5),
+			price: itm.children[2].innerText
 		});
 	}
 	chrome.runtime.sendMessage({ //Send the first data
@@ -38,51 +38,68 @@
 		subtotal: total,
 		items: item_arr
 	});
-} catch (TypeError) {
+} catch (errA) {
 	try { //Otherwise, try PayPal
-		var transaction = document.querySelectorAll(".ppvx_row")[0]; //The main transaction (zero to only get the first transaction in list)
-		var trans_sub = transaction.querySelectorAll(".tdPurchaseDetails"); //Sub section containing items and purchase amount
 
-		var total_ele = trans_sub[0].getElementsByTagName("dd")[1];
-		var total = total_ele.innerText.includes("Purchase") ? total_ele.querySelectorAll(".ppvx_col-4")[0].innerText : "$0.00";
-
-		var total = "$0.00"; //Defaults
-		var shipping = "$0.00";
-
-		var data = trans_sub[0].getElementsByTagName("dd"); //Get the elements containing the purchase amounts
-		for (var i=0; i<data.length; i++) { //Iterate over all values, searching for shipping and total
-			if (data[i].innerText.includes("Shipping")) {
-				shipping = data[i].querySelectorAll(".ppvx_col-4")[0].innerText;
-			} else if (data[i].innerText.includes("Purchase")) {
-				total = data[i].querySelectorAll("ppvx_col-4")[0].innerText;
+		//Get the items
+		let transaction = document.querySelector("#td_purchaseDetailsSeller").parentElement; //The main transaction purchase details
+		let items_arr = [];
+		let items = transaction.children;
+		for (let i=1; i<items.length && !items[i].classList.contains("purchaseDetailFields"); i++) {
+			try {
+				let desc = items[i].children[0].children[0].children[0].innerText; //Description is first field
+				let price = items[i].children[0].children[0].children[1].innerText; //Price is second field
+				items_arr.push({
+					desc: desc,
+					sku: "I", //No SKU field currently
+					qty: "1", //No QTY field currently
+					price: price
+				});
+			} catch (err) {
+				console.log("ERR: found an invalid coin entry, index: ", i);
 			}
 		}
 
-		var addr_block = transaction.getElementsByTagName("dl")[1].getElementsByTagName("dd");
-		var addr = addr_block[0].innerText + "\n" + addr_block[1].innerText; //Combine the name and address
+		//Get the total and shipping (if any)
+		let total = 0;
+		let shipping = 0;
+		let details = transaction.querySelector(".purchaseDetailFields").children; //Items section
+		for (let i=0; i<details.length; i++) {
+			try {
+				let selector = details[i].children[0].children;
+				if (selector[0].innerText.includes("Purchase total")) { //Order total
+					total = parseFloat(selector[1].innerText.substring(selector[1].innerText.indexOf("$")+1));
+					if (isNaN(total)) {
+						console.log("ERR: couldn't parse number from total: ", total);
+						total = 0;
+					}
+					console.log("INFO: found total: ", total);
+				} else if (selector[0].innerText.includes("Shipping")) { //Order total
+					shipping = parseFloat(selector[1].innerText.substring(selector[1].innerText.indexOf("$")+1));
+					if (isNaN(shipping)) {
+						console.log("ERR: couldn't parse number from shipping: ", shipping);
+						shipping = 0;
+					}
+					console.log("INFO: found shipping: ", shipping);
+				}
+			} catch (err) {
+				console.log("ERR: found an invalid data entry, index: ", i, "Error: ", err);
+			}
+		}
+		total = total - shipping;
 
-		chrome.runtime.sendMessage({ //Send the first data
+		//Get the address
+		let addr_block = document.querySelector("#td_sellerWasShipped").parentElement;
+		let addr = addr_block.children[1].innerText + "\n" + addr_block.children[2].children[1].innerText; //Combine the name and address
+
+		chrome.runtime.sendMessage({
 			to: addr,
 			shipping: shipping,
-			subtotal: total
+			subtotal: total,
+			items: items_arr
 		});
-
-		var items = trans_sub[0].getElementsByTagName("dd")[0].querySelectorAll(".item"); //Items section
-		for (var i=0; i<items.length; i++) {
-			var sku = "I"; //No SKU field
-			var qty = "1"; //No QTY field
-			var desc = items[i].querySelectorAll(".ppvx_text--sm")[0].innerText; //Description is first field
-			var price = items[i].querySelectorAll(".ppvx_text--sm")[1].innerText; //Price is second field
-			chrome.runtime.sendMessage({
-				item: {
-					desc: desc,
-					sku: sku,
-					qty: qty,
-					price: price
-				}
-			});
-		}
-	} catch (TypeError) {
-		chrome.runtime.sendMessage({error: "Not a valid page to parse"});
+	} catch (errB) {
+		console.log("Error while trying to parse both eBay and PayPal pages. eBay:", errA, "PayPal:", errB);
+		chrome.runtime.sendMessage({error: "Not a valid page to parse", errMsg: [errA, errB]});
 	}
 }

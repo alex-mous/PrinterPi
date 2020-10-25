@@ -56,6 +56,13 @@
  * @property {Settings} settings User settings as defined above
  */
 
+ /**
+  * General on finish callback for chrome async functions
+  * 
+  * @callback onFinish
+  * @param {string} resError Response error (if any) 
+  */
+
 
 
 /*
@@ -76,12 +83,14 @@
  * Read the data from the storage and show it on the page
  * 
  * @function readStorageData
+ * @param {onFinish} onFinish On finish callback
  */
-let readStorageData = () => {
+let readStorageData = (onFinish) => {
   chrome.storage.local.get(["data"], (res) => {
     if (res.data) {
       setData(res.data);
       document.getElementById("more-info").innerHTML = "Data read from storage";
+      onFinish();
     }
   });
 }
@@ -546,8 +555,10 @@ window.onload = () => { //Add event listeners, etc.
 
 chrome.runtime.onMessage.addListener((msg) => { //Listen for messages and set the data accordingly
   if (msg.error != null) { //Error message from background script
-    document.getElementById("more-info").innerHTML = "Not a valid page to parse - showing stored data"; //Show the error message
-    readStorageData(); //Default to storage
+    console.log("ERR: error received from background script: ", msg);
+    readStorageData(() => { //Default to storage
+      document.getElementById("more-info").innerHTML += ". Not a valid page to parse."; //Show the error message
+    });
   } else {
     setData({ //Set the data packet
       to: msg.to,
