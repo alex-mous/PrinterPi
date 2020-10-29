@@ -247,8 +247,11 @@ let printEnvelope = (pkt) => {
     format: "a4",
     unit: "mm"
   });
-  //To address block is at (190, 120) (text centered at 190)
-  //From address block is at (68.5, 65)
+
+  //To address block is at (170, 110) (approximately)
+  //From address block is at (47.5, 63)
+  const fromXY = { x: 47.5, y: 63 };
+  const toXY = { x: 170, y: 110 };
   
   let wFrom = 0; //Width of from address
   let wTo = 0; //Width of to address
@@ -266,20 +269,20 @@ let printEnvelope = (pkt) => {
   if (fromLogo) { //Image to add
     if (fromLogo.height*2 > fromLogo.width) { //Height is larger than half of the width - show next to address as opposed to on top
       wImg = hBox * pkt.settings.fromLogo.width / pkt.settings.fromLogo.height;
-      pdf.line(68.5+wImg, 65, 68.5+wImg, 65+hBox); //Add line under box
-      pdf.addImage(pkt.settings.fromLogo.data, "JPEG", 68.75, 65.25, wImg-0.5, hBox-0.5);
+      pdf.line(fromXY.x+wImg, fromXY.y, fromXY.x+wImg, fromXY.y+hBox); //Add line under box
+      pdf.addImage(pkt.settings.fromLogo.data, "JPEG", fromXY.x+0.25, fromXY.y+0.25, wImg-0.5, hBox-0.5);
     } else {
       hImg = wBox * pkt.settings.fromLogo.height / pkt.settings.fromLogo.width;
-      pdf.line(68.5, 65+hImg, 68.5+wBox, 65+hImg); //Add line under box
-      pdf.addImage(pkt.settings.fromLogo.data, "JPEG", 68.75, 65.25, wBox-0.5, hImg-0.5);
+      pdf.line(fromXY.x, fromXY.y+hImg, fromXY.x+wBox, fromXY.y+hImg); //Add line under box
+      pdf.addImage(pkt.settings.fromLogo.data, "JPEG", fromXY.x+0.25, fromXY.y+0.25, wBox-0.5, hImg-0.5);
     }
   }
-  pdf.roundedRect(68.5, 65, wBox+wImg, hBox+hImg, 1, 1); //Add enclosing box
+  pdf.roundedRect(fromXY.x, fromXY.y, wBox+wImg, hBox+hImg, 1, 1); //Add enclosing box
   pdf.setFontSize(10.5);
-  pdf.text(from, 68.5+wBox/2+wImg, 65+5+hImg, {align: "center", lineHeightFactor: "1.1"}); //Add from address
+  pdf.text(from, fromXY.x+wBox/2+wImg, fromXY.y+5+hImg, {align: "center", lineHeightFactor: "1.1"}); //Add from address
   
   pdf.setFontSize(12);
-  pdf.text(to, 170+wFrom, 110.2, {align: "center", lineHeightFactor: "1.1"});
+  pdf.text(to, toXY.x+wFrom, toXY.y, {align: "center", lineHeightFactor: "1.1"});
   window.open(pdf.output("bloburl")).print(); //Open window and print
 }
 
