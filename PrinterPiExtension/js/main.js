@@ -90,8 +90,13 @@ let readStorageData = (onFinish) => {
     if (res.data) {
       setData(res.data);
       document.getElementById("more-info").innerHTML = "Data read from storage";
-      onFinish();
+    } else {
+      document.getElementById("more-info").innerHTML = "No data in storage";
+      document.getElementById('print-button').disabled = true;
+      document.getElementById('envelope-button').disabled = true;
+      document.getElementById('save-button').disabled = true;
     }
+    onFinish();
   });
 }
 
@@ -522,6 +527,30 @@ let showOptions = () => {
 let parsePage = () => {
   chrome.extension.getBackgroundPage().chrome.tabs.executeScript(null, { file: './js/background.js' }); //Try to run the background script
 }
+/**
+ * Parse the file with receipt data - event listener for file change event
+ * 
+ * @function parseFile
+ * @param {Object} ev Event
+ */
+let parseFile = (ev) => {
+  const files = ev.target.files;
+  if (files && files[0]) { //User selected a file
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const data = JSON.parse(event.target.result);
+      setData({ //Set the data packet
+        to: data.to,
+        shipping: data.shipping,
+        subtotal: data.subtotal,
+        items: data.items,
+      });
+      validateInputs();
+      document.getElementById("more-info").innerHTML = "Data loaded from file"; //Show the error message
+    }
+    reader.readAsText(files[0]);
+  }
+}
 
 
 
@@ -542,13 +571,15 @@ window.onload = () => { //Add event listeners, etc.
       readStorageData(); //Read the current data and display it
     }
   }).catch((err) => {
-    console.log("Error while getting settings: " + err);
+    console.error("Error while getting settings: " + err);
     let done_msg = document.getElementById("done-msg");
     done_msg.innerHTML = "Please configure the printer settings in the Setting page (via the button PrinterPi Settings below)";
     done_msg.classList = "text-danger";
   });
   document.getElementById('save-button').addEventListener('click', setStorageData);
-  document.getElementById('parse-button').addEventListener('click', () => parsePage); //Execute the background parsing script
+  document.getElementById('parse-button').addEventListener('click', parsePage); //Execute the background parsing script
+  document.getElementById('file-button').addEventListener('click', () => document.getElementById('file-dialog').click()); //Parse a file for the receipt
+  document.getElementById('file-dialog').addEventListener('change', parseFile)
   document.getElementById("items-row-btn").addEventListener("click", addRowItems);
   document.getElementById("options-btn").addEventListener("click", showOptions);
 	document.getElementById('Shipping').addEventListener("change", validateInputs);
@@ -562,6 +593,7 @@ chrome.runtime.onMessage.addListener((msg) => { //Listen for messages and set th
     readStorageData(() => { //Default to storage
       document.getElementById("more-info").innerHTML += ". Not a valid page to parse."; //Show the error message
     });
+    document.getElementById('parse-button').disabled = true;
   } else {
     setData({ //Set the data packet
       to: msg.to,
