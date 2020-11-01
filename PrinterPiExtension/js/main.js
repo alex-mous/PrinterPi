@@ -51,6 +51,7 @@
  * @typedef {Object} Packet
  * @property {string} to Address of the buyer
  * @property {string} shipping Shipping paid by buyer
+ * @property {string} tax Tax paid by buyer
  * @property {string} subtotal Subtotal paid by buyer (not including shipping)
  * @property {Array<Item>} items Items purchased
  * @property {Settings} settings User settings as defined above
@@ -63,7 +64,7 @@
   * @param {string} resError Response error (if any) 
   */
 
-
+const VERSION_NO = 6.0; //Current version
 
 /*
   Data format to send to PrinterPi (NOTE: item descs and skus MUST NOT CONTAIN ~ and NO EXTRA SPACES ARE ALLOWED before/after parameters):
@@ -71,6 +72,7 @@
   To: Line1/n/Line2/n/Line3
   From: Line1/n/Line2/n/Line3
   Subtotal: $5.00
+  Tax: $0.00
   Shipping: $3.00
   SaveFile: 1
   Item: Item_1~I123~1~$1.00
@@ -144,8 +146,9 @@ let convertToMessage = (pkt) => {
 
     To: Line1/n/Line2/n/Line3
     From: Line1/n/Line2/n/Line3
-    Subtotal: $5.00
-    Shipping: $3.00
+    Subtotal: $2.00
+    Tax: $1.00
+    Shipping: $1.00
     Item: Item_1~I123~1~$1.00
     Item: Item 2, And 3~I32-+A5~44~$1.00
     Message: Contact me at eikyutsuho@gmail.com if you have any questions/concerns/n/Thank you for your business!
@@ -155,6 +158,7 @@ let convertToMessage = (pkt) => {
   msg += "To: " + pkt.to.split("\n").join("/n/") + "\r\n";
   msg += "From: " + pkt.settings.from.split("\n").join("/n/") + "\r\n";
   msg += "Subtotal: " + pkt.subtotal + "\r\n";
+  msg += "Tax: " + pkt.tax + "\r\n";
   msg += "Shipping: " + pkt.shipping + "\r\n";
   pkt.items.forEach((item) => msg += "Item: " + item.desc.replace("~", " ") + "~" + item.sku.replace("~", " ") + "~" + item.qty + "~" + item.price + "\r\n");
   msg += "Message: " + pkt.settings.messages.split("\n").join("~") + "\r\n";
@@ -174,6 +178,7 @@ let sendData = (pkt) => {
     done_msg.innerHTML = "Sending data...";
     done_msg.classList = "text-warning";
     let msg = convertToMessage(pkt);
+    console.log(msg);
     fetch("http://" + pkt.settings.ipAddress, {
       method: "POST",
       headers: {
@@ -207,7 +212,7 @@ let sendData = (pkt) => {
 
 
 /**
- * Download the data Packet onto the user's OS (only select options [to, shipping, subtotal and items] are used)
+ * Download the data Packet onto the user's OS (only select options [to, shipping, tax, subtotal, items and version] are used)
  * 
  * @function downloadFile
  * @param {Packet} pkt
@@ -216,8 +221,10 @@ let downloadFile = (pkt, filepath) => {
   let blob = new Blob([JSON.stringify({
     to: pkt.to,
     shipping: pkt.shipping,
+    tax: pkt.tax,
     subtotal: pkt.subtotal,
-    items: pkt.items
+    items: pkt.items,
+    version: VERSION_NO
   })], {type: "application/json"});
   let url = URL.createObjectURL(blob);
   let item_skus = pkt.items.filter((item) => item.sku.length > 1);
@@ -315,6 +322,7 @@ let getData = () => { //Read the data from the HTML page
   let data = {
     to: document.getElementById("Address").value,
     subtotal: document.getElementById("Subtotal").value,
+    tax: document.getElementById("Tax").value,
     shipping: document.getElementById("Shipping").value,
     items: items
   }
@@ -346,6 +354,7 @@ let getPacket = (settings) => {
 let setData = (pkt) => {
   document.getElementById("Address").value = pkt.to;
   document.getElementById('Shipping').value = pkt.shipping;
+  document.getElementById('Tax').value = pkt.tax;
   document.getElementById('Subtotal').value = pkt.subtotal;
   document.getElementById('items').innerHTML = ""; //Remove existing items
   pkt.items.forEach((item) => addItem(item));
@@ -406,8 +415,8 @@ let validateNumberInput = (ele, name) => {
 let validateInputs = () => { 
   let err_msg = ""; //Hold the error to be returned to the user
 
-  //Validate the shipping and total
-  var values = ["Subtotal", "Shipping"];
+  //Validate the shipping, tax and total
+  var values = ["Subtotal", "Tax", "Shipping"];
   values.forEach((id) => {
     let res = validateNumberInput(document.getElementById(id), id)
     if (res)
@@ -539,9 +548,14 @@ let parseFile = (ev) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const data = JSON.parse(event.target.result);
+      let tax = 0;
+      if (data.version >= 6.0) { //Tax support added in version 6.0
+        tax = data.tax
+      }
       setData({ //Set the data packet
         to: data.to,
         shipping: data.shipping,
+        tax: tax,
         subtotal: data.subtotal,
         items: data.items,
       });
@@ -582,9 +596,12 @@ window.onload = () => { //Add event listeners, etc.
   document.getElementById('file-dialog').addEventListener('change', parseFile)
   document.getElementById("items-row-btn").addEventListener("click", addRowItems);
   document.getElementById("options-btn").addEventListener("click", showOptions);
-	document.getElementById('Shipping').addEventListener("change", validateInputs);
+  document.getElementById('Shipping').addEventListener("change", validateInputs);
+  document.getElementById('Tax').addEventListener("change", validateInputs);
 	document.getElementById('Subtotal').addEventListener("change", validateInputs);
   document.getElementById('Address').addEventListener("change", validateInputs);
+
+  $('[data-toggle="tooltip"]').tooltip(); //Setup up tooltips
 }
 
 chrome.runtime.onMessage.addListener((msg) => { //Listen for messages and set the data accordingly
@@ -598,6 +615,7 @@ chrome.runtime.onMessage.addListener((msg) => { //Listen for messages and set th
     setData({ //Set the data packet
       to: msg.to,
       shipping: msg.shipping,
+      tax: msg.tax,
       subtotal: msg.subtotal,
       items: msg.items,
     });

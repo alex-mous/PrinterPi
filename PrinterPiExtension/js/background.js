@@ -19,23 +19,29 @@
 
  try { //Try eBay
 	let address = document.querySelector("#shipToAddress").innerText;
-	let shipping = document.querySelectorAll(".BuyerPurchaseDetails--1nhS6")[3].children[1].innerText;
-	let total = document.querySelectorAll(".BuyerPurchaseDetails--1nhS6")[2].children[1].innerText;
+	let shipping = document.querySelectorAll(".BuyerPurchaseDetails--1nhS6")[3].children[1].innerText; 
+	shipping = parseFloat(shipping.substring(shipping.indexOf("$")+1)); //Shipping as a float
+	let grandTotal = document.querySelectorAll(".BuyerPurchaseDetails--1nhS6")[2].children[1].innerText; //Shipping+items+tax
+	grandTotal = parseFloat(grandTotal.substring(grandTotal.indexOf("$")+1));
+	let itemTotal = 0; //Total cost of items
 	let items = document.querySelectorAll(".PurchasedItem---CkHb");
 	let item_arr = [];
 	for (let i=0; i<items.length; i++) { //Iterate through the items
 		let itm = items[i].children[1];
+		let price =  itm.children[2].innerText;
+		itemTotal += parseFloat(price.substring(price.indexOf("$")+1));
 		item_arr.push({
 			desc: itm.children[0].innerText,
 			sku: "I",
 			qty: itm.children[1].innerText.slice(5),
-			price: itm.children[2].innerText
+			price: price
 		});
 	}
 	chrome.runtime.sendMessage({ //Send the first data
 		to: address,
 		shipping: shipping,
-		subtotal: total,
+		subtotal: itemTotal,
+		tax: grandTotal-(shipping+itemTotal),
 		items: item_arr
 	});
 } catch (errA) {
@@ -59,6 +65,8 @@
 				console.log("ERR: found an invalid coin entry, index: ", i);
 			}
 		}
+
+		let tax = 0; //No tax currently
 
 		//Get the total and shipping (if any)
 		let total = 0;
@@ -95,6 +103,7 @@
 		chrome.runtime.sendMessage({
 			to: addr,
 			shipping: shipping,
+			tax: tax,
 			subtotal: total,
 			items: items_arr
 		});

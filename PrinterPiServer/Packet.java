@@ -26,6 +26,7 @@ public class Packet {
 	public String[] from;
 	public double subtotal;
 	public double shipping;
+	public double tax;
 	public double total;
 	public Set<Item> items;
 	public String[] messages;

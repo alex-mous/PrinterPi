@@ -142,6 +142,12 @@ public class Printer {
 		write("    $" + String.format("%.2f",packet.shipping));
 		cr();
 		style(0x88); //Bold, underline
+		write("Tax:");
+		style(0x00); //Clear
+		cr();
+		write("    $" + String.format("%.2f",packet.tax));
+		cr();
+		style(0x88); //Bold, underline
 		write("Total:");
 		style(0x00); //Clear
 		cr();

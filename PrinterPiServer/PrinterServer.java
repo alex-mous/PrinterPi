@@ -112,6 +112,9 @@ public class PrinterServer {
 						case "shipping":
 							pkt.shipping = Double.parseDouble(value.substring(1));
 							break;
+						case "tax":
+							pkt.tax = Double.parseDouble(value.substring(1));
+							break;
 						case "item":
 							String desc = value.substring(0, value.indexOf("~"));
 							value = value.substring(value.indexOf("~")+1);
@@ -129,7 +132,7 @@ public class PrinterServer {
 						default:
 							System.out.println("Unrecognized parameter: " + key);
 					}
-					pkt.total = pkt.shipping + pkt.subtotal;
+					pkt.total = pkt.shipping + pkt.subtotal + pkt.tax;
 				}
 				if (pkt.isComplete()) {
 					response = "HTTP/1.0 200 OK\r\nContent-Type: application/json\r\n\r\n{\"success\":true}\r\n";
