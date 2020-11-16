@@ -19,7 +19,7 @@
 
  try { //Try eBay
 	let address = document.querySelector("#shipToAddress").innerText;
-	let shipping = document.querySelectorAll(".BuyerPurchaseDetails--1nhS6")[3].children[1].innerText; 
+	let shipping = document.querySelectorAll(".BuyerPurchaseDetails--1nhS6")[3].children[1].innerText;
 	shipping = parseFloat(shipping.substring(shipping.indexOf("$")+1)); //Shipping as a float
 	let grandTotal = document.querySelectorAll(".BuyerPurchaseDetails--1nhS6")[2].children[1].innerText; //Shipping+items+tax
 	grandTotal = parseFloat(grandTotal.substring(grandTotal.indexOf("$")+1));
@@ -28,12 +28,13 @@
 	let item_arr = [];
 	for (let i=0; i<items.length; i++) { //Iterate through the items
 		let itm = items[i].children[1];
-		let price =  itm.children[2].innerText;
-		itemTotal += parseFloat(price.substring(price.indexOf("$")+1));
+    let price = itm.children[3].innerText;
+    price = parseFloat(price.substring(price.indexOf("$")+1));
+		itemTotal += price;
 		item_arr.push({
 			desc: itm.children[0].innerText,
-			sku: "I",
-			qty: itm.children[1].innerText.slice(5),
+			sku: itm.children[1].innerText.slice(5),
+			qty: itm.children[2].innerText.slice(5),
 			price: price
 		});
 	}
