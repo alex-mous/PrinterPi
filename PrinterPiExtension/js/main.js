@@ -59,9 +59,9 @@
 
  /**
   * General on finish callback for chrome async functions
-  * 
+  *
   * @callback onFinish
-  * @param {string} resError Response error (if any) 
+  * @param {string} resError Response error (if any)
   */
 
 const VERSION_NO = 6.0; //Current version
@@ -83,7 +83,7 @@ const VERSION_NO = 6.0; //Current version
 
 /**
  * Read the data from the storage and show it on the page
- * 
+ *
  * @function readStorageData
  * @param {onFinish} onFinish On finish callback
  */
@@ -104,7 +104,7 @@ let readStorageData = (onFinish) => {
 
 /**
  * Store the data from the page into storage
- * 
+ *
  * @function setStorageData
  */
 let setStorageData = () => {
@@ -117,7 +117,7 @@ let setStorageData = () => {
 
 /**
  * Get the settings from memory
- * 
+ *
  * @function getSettings
  * @returns {Promise} Settings as a Promise
  */
@@ -135,7 +135,7 @@ let getSettings = () => {
 
 /**
  * Convert a Packet into a message
- * 
+ *
  * @function convertToMessage
  * @param {Packet} pkt Packet
  * @returns {string} Message
@@ -168,7 +168,7 @@ let convertToMessage = (pkt) => {
 
 /**
  * Create the message from the data Packet and send it
- * 
+ *
  * @function sendData
  * @param {Packet} pkt Data Packet
  */
@@ -213,7 +213,7 @@ let sendData = (pkt) => {
 
 /**
  * Download the data Packet onto the user's OS (only select options [to, shipping, tax, subtotal, items and version] are used)
- * 
+ *
  * @function downloadFile
  * @param {Packet} pkt
  */
@@ -249,7 +249,7 @@ let downloadFile = (pkt, filepath) => {
 
 /**
  * Generate and print a JSPDF PDF document envelope
- * 
+ *
  * @function printEnvelope
  * @param {Packet} pkt Packet to use for envelope PDF
  */
@@ -263,8 +263,8 @@ let printEnvelope = (pkt) => {
   //To address block is at (170, 110) (approximately)
   //From address block is at (47.5, 63)
   const fromXY = { x: 47.5, y: 63 };
-  const toXY = { x: 170, y: 110 };
-  
+  const toXY = { x: 170, y: 116 };
+
   let wFrom = 0; //Width of from address
   let wTo = 0; //Width of to address
   let from = pkt.settings.from.split("\n");
@@ -292,7 +292,7 @@ let printEnvelope = (pkt) => {
   pdf.roundedRect(fromXY.x, fromXY.y, wBox+wImg, hBox+hImg, 1, 1); //Add enclosing box
   pdf.setFontSize(10.5);
   pdf.text(from, fromXY.x+wBox/2+wImg, fromXY.y+5+hImg, {align: "center", lineHeightFactor: "1.1"}); //Add from address
-  
+
   pdf.setFontSize(12);
   pdf.text(to, toXY.x+wFrom, toXY.y, {align: "center", lineHeightFactor: "1.1"});
   window.open(pdf.output("bloburl")).print(); //Open window and print
@@ -300,7 +300,7 @@ let printEnvelope = (pkt) => {
 
 /**
  * Get the data from the page and return it in as a Packet
- * 
+ *
  * @function getData
  * @returns {Object} Page data
  */
@@ -331,7 +331,7 @@ let getData = () => { //Read the data from the HTML page
 
 /**
  * Get the complete data Packet
- * 
+ *
  * @param {Object} settings Object containing user settings
  * @returns {Packet} Data Packet
  */
@@ -347,7 +347,7 @@ let getPacket = (settings) => {
 
 /**
  * Take a data packet and sets the data to show on the page
- *  
+ *
  * @function setData
  * @param {Packet} pkt Data packet
  */
@@ -362,7 +362,7 @@ let setData = (pkt) => {
 
 /**
  * Take an item and add it to the #items table
- * 
+ *
  * @function addItem
  * @param {Item} item Object containing desc, price, qty and sku
  */
@@ -378,7 +378,7 @@ let addItem = (msg) => {
 
 /**
  * Validate the number/currecy input and convert to currency if it is a number
- * 
+ *
  * @function validateNumberInput
  * @param {Object} ele Node element to analyze
  * @param {Object} name Name of element to show in error message
@@ -408,11 +408,11 @@ let validateNumberInput = (ele, name) => {
 
 /**
  * Checks all of the fields and sets error message as required
- * 
+ *
  * @function validateInputs
  * @returns {boolean} Returns if inputs are ready
  */
-let validateInputs = () => { 
+let validateInputs = () => {
   let err_msg = ""; //Hold the error to be returned to the user
 
   //Validate the shipping, tax and total
@@ -471,7 +471,7 @@ let validateInputs = () => {
 
 /**
  * Create a TD element containing an INPUT element with the value provided
- * 
+ *
  * @function getTDInput
  * @param {string} data Value of the input element
  * @returns {Object} Returns TD node
@@ -490,7 +490,7 @@ let getTDInput = (data) => {
 
 /**
  * Create a BUTTON element with a callback to remove the row
- * 
+ *
  * @function getXButton
  * @returns {Object} Returns BUTTON node
  */
@@ -507,7 +507,7 @@ let getXButton = () => {
 
 /**
  * Add an empty row to the table #items
- * 
+ *
  * @function addRowItems
  */
 let addRowItems = () => { //Add an empty row to the table "items"
@@ -521,7 +521,7 @@ let addRowItems = () => { //Add an empty row to the table "items"
 
 /**
  * Show the Options page in a new tab
- * 
+ *
  * @function showOptions
  */
 let showOptions = () => {
@@ -530,7 +530,7 @@ let showOptions = () => {
 
 /**
  * Parse the webpage (run the background script, which triggers runtime.onMessage events - see below)
- * 
+ *
  * @function parsePage
  */
 let parsePage = () => {
@@ -538,7 +538,7 @@ let parsePage = () => {
 }
 /**
  * Parse the file with receipt data - event listener for file change event
- * 
+ *
  * @function parseFile
  * @param {Object} ev Event
  */

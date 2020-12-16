@@ -19,17 +19,17 @@
 
  try { //Try eBay
 	let address = document.querySelector("#shipToAddress").innerText;
-	let shipping = document.querySelectorAll(".BuyerPurchaseDetails--1nhS6")[3].children[1].innerText;
+	let shipping = document.querySelectorAll("._1nhS6BoY")[3].children[1].innerText;
 	shipping = parseFloat(shipping.substring(shipping.indexOf("$")+1)); //Shipping as a float
-	let grandTotal = document.querySelectorAll(".BuyerPurchaseDetails--1nhS6")[2].children[1].innerText; //Shipping+items+tax
+	let grandTotal = document.querySelectorAll("._1nhS6BoY")[2].children[1].innerText; //Shipping+items+tax
 	grandTotal = parseFloat(grandTotal.substring(grandTotal.indexOf("$")+1));
 	let itemTotal = 0; //Total cost of items
-	let items = document.querySelectorAll(".PurchasedItem---CkHb");
+	let items = document.querySelectorAll(".-CkHbnvR");
 	let item_arr = [];
 	for (let i=0; i<items.length; i++) { //Iterate through the items
 		let itm = items[i].children[1];
-    let price = itm.children[3].innerText;
-    price = parseFloat(price.substring(price.indexOf("$")+1));
+    	let price = itm.children[3].innerText;
+    	price = parseFloat(price.substring(price.indexOf("$")+1));
 		itemTotal += price;
 		item_arr.push({
 			desc: itm.children[0].innerText,
@@ -51,11 +51,12 @@
 		//Get the items
 		let transaction = document.querySelector("#td_purchaseDetailsSeller").parentElement; //The main transaction purchase details
 		let items_arr = [];
-		let items = transaction.children;
-		for (let i=1; i<items.length && !items[i].classList.contains("purchaseDetailFields"); i++) {
+		let items = document.querySelectorAll(".item");
+		for (let i=1; i<items.length; i++) {
 			try {
-				let desc = items[i].children[0].children[0].children[0].innerText; //Description is first field
-				let price = items[i].children[0].children[0].children[1].innerText; //Price is second field
+        console.log(items[i])
+				let desc = items[i].children[0].children[0].innerText; //Description is first field
+				let price = items[i].children[0].children[1].innerText; //Price is second field
 				items_arr.push({
 					desc: desc,
 					sku: "I", //No SKU field currently
@@ -98,7 +99,7 @@
 		total = total - shipping;
 
 		//Get the address
-		let addr_block = document.querySelector("#td_sellerWasShipped").parentElement;
+		let addr_block = document.querySelector("#td_sellerShipAddress").parentElement;
 		let addr = addr_block.children[1].innerText + "\n" + addr_block.children[2].children[1].innerText; //Combine the name and address
 
 		chrome.runtime.sendMessage({
