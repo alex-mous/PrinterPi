@@ -16,45 +16,76 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
- try { //Try eBay
-	let address = document.querySelector("#shipToAddress").innerText;
-	let shipping = document.querySelectorAll("._1nhS6BoY")[3].children[1].innerText;
-	shipping = parseFloat(shipping.substring(shipping.indexOf("$")+1)); //Shipping as a float
-	let grandTotal = document.querySelectorAll("._1nhS6BoY")[2].children[1].innerText; //Shipping+items+tax
-	grandTotal = parseFloat(grandTotal.substring(grandTotal.indexOf("$")+1));
-	let itemTotal = 0; //Total cost of items
-	let items = document.querySelectorAll(".-CkHbnvR");
-	let item_arr = [];
-	for (let i=0; i<items.length; i++) { //Iterate through the items
-		let itm = items[i].children[1];
-    	let price = itm.children[3].innerText;
-    	price = parseFloat(price.substring(price.indexOf("$")+1));
-		itemTotal += price;
-		item_arr.push({
-			desc: itm.children[0].innerText,
-			sku: itm.children[1].innerText.slice(5),
-			qty: itm.children[2].innerText.slice(5),
-			price: price
-		});
+{
+	let parseEbayRegular = () => {
+		let address = document.querySelector("#shipToAddress").innerText;
+		let shipping = document.querySelectorAll("._1nhS6BoY")[3].children[1].innerText;
+		shipping = parseFloat(shipping.substring(shipping.indexOf("$")+1)); //Shipping as a float
+		let grandTotal = document.querySelectorAll("._1nhS6BoY")[2].children[1].innerText; //Shipping+items+tax
+		grandTotal = parseFloat(grandTotal.substring(grandTotal.indexOf("$")+1));
+		let itemTotal = 0; //Total cost of items
+		let items = document.querySelectorAll(".-CkHbnvR");
+		let item_arr = [];
+		for (let i=0; i<items.length; i++) { //Iterate through the items
+			let itm = items[i].children[1];
+			let price = itm.children[3].innerText;
+			price = parseFloat(price.substring(price.indexOf("$")+1));
+			itemTotal += price;
+			item_arr.push({
+				desc: itm.children[0].innerText,
+				sku: itm.children[1].innerText.slice(5),
+				qty: itm.children[2].innerText.slice(5),
+				price: price
+			});
+		}
+		return {
+			to: address,
+			shipping: shipping,
+			subtotal: itemTotal,
+			tax: grandTotal-(shipping+itemTotal),
+			items: item_arr
+		}
 	}
-	chrome.runtime.sendMessage({ //Send the first data
-		to: address,
-		shipping: shipping,
-		subtotal: itemTotal,
-		tax: grandTotal-(shipping+itemTotal),
-		items: item_arr
-	});
-} catch (errA) {
-	try { //Otherwise, try PayPal
 
+	const parseEbayBulk = () => {
+		let orders = [];
+		document.querySelectorAll(".orders-list__item__details").forEach((order) => {
+			let address = order.querySelector("address").innerText;
+			let items = [];
+			order.querySelectorAll(".item__description").forEach(item => {
+				items.push({
+					desc: item.children[0].innerText,
+					sku: item.querySelector(".item__details").children[0].innerText.slice(5),
+					qty: item.querySelector(".item__details").children[1].innerText.slice(5),
+					price: parseFloat(item.querySelector(".item__details").children[2].innerText.slice(11))
+				});
+			});
+			let shipping = order.querySelector(".buyer-paid-service").children[0].innerText.slice(1);
+			
+			let itemTotal = items.length > 1 ? items.reduce((a, b) => (a .price|| a) + (b.price || b)) : items[0].price;
+			
+			orders.push({
+				to: address,
+				shipping: shipping,
+				subtotal: itemTotal,
+				tax: 0, //No tax field available
+				items: items
+			})
+		});
+		if (orders.length == 0) {
+			throw new Error("No orders found");
+		}
+		return orders;
+	}
+
+	let parsePayPalRegular = () => {
 		//Get the items
 		let transaction = document.querySelector("#td_purchaseDetailsSeller").parentElement; //The main transaction purchase details
 		let items_arr = [];
 		let items = document.querySelectorAll(".item");
 		for (let i=1; i<items.length; i++) {
 			try {
-        console.log(items[i])
+		console.log(items[i])
 				let desc = items[i].children[0].children[0].innerText; //Description is first field
 				let price = items[i].children[0].children[1].innerText; //Price is second field
 				items_arr.push({
@@ -102,15 +133,36 @@
 		let addr_block = document.querySelector("#td_sellerShipAddress").parentElement;
 		let addr = addr_block.children[1].innerText + "\n" + addr_block.children[2].children[1].innerText; //Combine the name and address
 
-		chrome.runtime.sendMessage({
+		return {
 			to: addr,
 			shipping: shipping,
 			tax: tax,
 			subtotal: total,
 			items: items_arr
+		}
+	}
+	console.log("[PrinterPi] Parsing data...");
+	try { //Try eBay Regular
+		let data = parseEbayRegular();
+		chrome.runtime.sendMessage({
+			orders: [data]
 		});
-	} catch (errB) {
-		console.log("Error while trying to parse both eBay and PayPal pages. eBay:", errA, "PayPal:", errB);
-		chrome.runtime.sendMessage({error: "Not a valid page to parse", errMsg: [errA, errB]});
+	} catch (errA) {
+		try { //Otherwise, try eBay Bulk
+			let orders = parseEbayBulk();
+			chrome.runtime.sendMessage({
+				orders: orders
+			});
+		} catch (errB) { //Finally, try PayPal
+			try {
+				let data = parsePayPalRegular();
+				chrome.runtime.sendMessage({
+					orders: [data]
+				});
+			} catch (errC) {
+				console.log("[PrinterPi] Error while trying to parse both all pages. eBay Regular:", errA, "eBay Bulk:", errB, "PayPal Regular:", errC);
+				chrome.runtime.sendMessage({error: "Not a valid page to parse", errMsg: [errA, errB, errC]});
+			}
+		}
 	}
 }

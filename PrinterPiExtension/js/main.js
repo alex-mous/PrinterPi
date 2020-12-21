@@ -64,7 +64,9 @@
   * @param {string} resError Response error (if any)
   */
 
-const VERSION_NO = 6.0; //Current version
+const VERSION_NO = 7.0; //Current version
+
+let orders = []; //Orders received from background script
 
 /*
   Data format to send to PrinterPi (NOTE: item descs and skus MUST NOT CONTAIN ~ and NO EXTRA SPACES ARE ALLOWED before/after parameters):
@@ -88,9 +90,11 @@ const VERSION_NO = 6.0; //Current version
  * @param {onFinish} onFinish On finish callback
  */
 let readStorageData = (onFinish) => {
-  chrome.storage.local.get(["data"], (res) => {
-    if (res.data) {
-      setData(res.data);
+  chrome.storage.local.get(["orders"], (res) => {
+    if (res.orders) {
+      orders = res.orders;
+      showOrders();
+      selectOrder(0);
       document.getElementById("more-info").innerHTML = "Data read from storage";
     } else {
       document.getElementById("more-info").innerHTML = "No data in storage";
@@ -109,7 +113,7 @@ let readStorageData = (onFinish) => {
  */
 let setStorageData = () => {
   if (validateInputs()) {
-    chrome.storage.local.set({data: getData()}, () => {
+    chrome.storage.local.set({orders: orders}, () => {
       document.getElementById("more-info").innerHTML = "Data saved";
     });
   }
@@ -330,6 +334,46 @@ let getData = () => { //Read the data from the HTML page
 }
 
 /**
+ * Show a (global) order based on it's index
+ * 
+ * @param {number} orderIndex 
+ */
+let selectOrder = (orderIndex) => {
+  console.log(orders);
+  setData({
+      to: orders[orderIndex]?.to || "",
+      shipping: orders[orderIndex]?.shipping || "0",
+      tax: orders[orderIndex]?.tax || "0",
+      subtotal: orders[orderIndex]?.subtotal || "0",
+      items: orders[orderIndex]?.items || [],
+  });
+  validateInputs();
+}
+
+/**
+ * Remove the current order (from global orders)
+ */
+const removeCurrentOrder = () => {
+  orders.splice(document.getElementById("order-select").value, 1);
+  showOrders();
+  selectOrder(0);
+}
+
+/**
+ * Show the (global) orders in the select
+ */
+const showOrders = () => {
+  document.getElementById('order-select').innerHTML = "";
+  orders.forEach((_, i) => {
+    let opt = document.createElement("OPTION");
+    opt.value = i;
+    opt.innerHTML = `Order ${i+1}`;
+    opt.selected = i==0;
+    document.getElementById('order-select').appendChild(opt);
+  });
+}
+
+/**
  * Get the complete data Packet
  *
  * @param {Object} settings Object containing user settings
@@ -456,12 +500,14 @@ let validateInputs = () => {
 
   if (err_msg) { //Display any errors and disable the submit button
     document.getElementById("print-button").disabled = true;
+    document.getElementById("print-all-button").disabled = true;
     let done_msg = document.getElementById("done-msg");
     done_msg.innerHTML = err_msg;
     done_msg.classList = "text-danger";
     return false;
   } else { //No errors - remove any lock on the submit button
     document.getElementById("print-button").disabled = false;
+    document.getElementById("print-all-button").disabled = false;
     let done_msg = document.getElementById("done-msg");
     done_msg.innerHTML = "Not connected";
     done_msg.classList = "text-info";
@@ -552,14 +598,16 @@ let parseFile = (ev) => {
       if (data.version >= 6.0) { //Tax support added in version 6.0
         tax = data.tax
       }
-      setData({ //Set the data packet
+      orders = [];
+      orders.push({ //Set the data packet
         to: data.to,
         shipping: data.shipping,
         tax: tax,
         subtotal: data.subtotal,
         items: data.items,
       });
-      validateInputs();
+      showOrders();
+      selectOrder(0);
       document.getElementById("more-info").innerHTML = "Data loaded from file"; //Show the error message
     }
     reader.readAsText(files[0]);
@@ -573,6 +621,13 @@ window.onload = () => { //Add event listeners, etc.
     document.getElementById('print-button').addEventListener('click', () => { //Get the data packet and send it
       let pkt = getPacket(settings);
       if (pkt) sendData(pkt);
+    });
+    document.getElementById('print-all-button').addEventListener('click', () => { //Get the data packet and send it
+      for (let orderIndex in orders) {
+        selectOrder(orderIndex);
+        let pkt = getPacket(settings);
+        if (pkt) sendData(pkt);
+      }
     });
     document.getElementById('envelope-button').addEventListener('click', () => { //Get the data packet and print it
       let pkt = getPacket(settings);
@@ -590,6 +645,8 @@ window.onload = () => { //Add event listeners, etc.
     done_msg.innerHTML = "Please configure the printer settings in the Setting page (via the button PrinterPi Settings below)";
     done_msg.classList = "text-danger";
   });
+  document.getElementById('order-select').addEventListener("change", (e) => selectOrder(e.target.value));
+  document.getElementById('remove-button').addEventListener("click", removeCurrentOrder);
   document.getElementById('save-button').addEventListener('click', setStorageData);
   document.getElementById('parse-button').addEventListener('click', parsePage); //Execute the background parsing script
   document.getElementById('file-button').addEventListener('click', () => document.getElementById('file-dialog').click()); //Parse a file for the receipt
@@ -611,14 +668,18 @@ chrome.runtime.onMessage.addListener((msg) => { //Listen for messages and set th
       document.getElementById("more-info").innerHTML += ". Not a valid page to parse."; //Show the error message
     });
     document.getElementById('parse-button').disabled = true;
-  } else {
-    setData({ //Set the data packet
-      to: msg.to,
-      shipping: msg.shipping,
-      tax: msg.tax,
-      subtotal: msg.subtotal,
-      items: msg.items,
-    });
-    validateInputs();
+  } else if (msg.orders) {
+    if (msg.orders.length >= 1) {
+      setData({ //Set the data packet
+        to: msg.orders[0].to,
+        shipping: msg.orders[0].shipping,
+        tax: msg.orders[0].tax,
+        subtotal: msg.orders[0].subtotal,
+        items: msg.orders[0].items,
+      });
+      orders = msg.orders;
+      showOrders();
+      validateInputs();
+    }
   }
 });

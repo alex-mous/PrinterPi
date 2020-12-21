@@ -16,11 +16,12 @@
 			</h5>
 			<hr class="py-1 my-1">
 			<h6 class="text-info text-center" id="more-info"></h6>
-			<div class="px-5 py-1 row">
-				<button class="btn btn-primary col mx-4" id='print-button'>Print Receipt</button>
+			<div class="px-3 py-1 row">
+				<button class="btn btn-primary col mx-2" id='print-button'>Print Receipt</button>
+				<button class="btn btn-primary col mx-2" id='print-all-button'>Print All Receipts</button>
 			</div>
-			<div class="px-5 py-1 row">
-				<button class="btn btn-sm btn-primary col mx-4" id='envelope-button'>Print Envelope</button>
+			<div class="px-3 py-1 row">
+				<button class="btn btn-sm btn-primary col mx-2" id='envelope-button'>Print Envelope</button>
 			</div>
 			<div class="px-3 pt-2 pb-1 row">
 				<button class="btn btn-sm btn-warning col mx-2" id='parse-button'>Parse Page</button>
@@ -31,6 +32,11 @@
 			</div>
 			<input type="file" style="display: none" id="file-dialog" accept=".json" />
 
+			<hr class="py-1 my-1">
+			<h5 class="text-center p-0 pt-1 m-0">Current Order</h5>
+			<select class="form-control" id="order-select">
+			</select>
+			<button class="btn btn-sm btn-warning col mx-2" id='remove-button'>Remove order</button>
 			<hr class="py-1 my-1">
 			<h5 class="text-center p-0 pt-1 m-0">Address</h5>
 			<textarea class="form-control h-100" rows="4" id="Address"></textarea>
