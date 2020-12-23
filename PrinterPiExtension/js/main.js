@@ -64,7 +64,7 @@
   * @param {string} resError Response error (if any)
   */
 
-const VERSION_NO = 7.0; //Current version
+const VERSION_NO = 7.1; //Current version
 
 let orders = []; //Orders received from background script
 

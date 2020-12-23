@@ -17,7 +17,10 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 {
-	let parseEbayRegular = () => {
+	/**
+	 * Parse and return an order from eBay regular print a shipping label page
+	 */
+	const parseEbayRegular = () => {
 		let address = document.querySelector("#shipToAddress").innerText;
 		let shipping = document.querySelectorAll("._1nhS6BoY")[3].children[1].innerText;
 		shipping = parseFloat(shipping.substring(shipping.indexOf("$")+1)); //Shipping as a float
@@ -47,6 +50,9 @@
 		}
 	}
 
+	/**
+	 * Parse and return a list of orders from eBay bulk print shipping labels page
+	 */
 	const parseEbayBulk = () => {
 		let orders = [];
 		document.querySelectorAll(".orders-list__item__details").forEach((order) => {
@@ -78,68 +84,67 @@
 		return orders;
 	}
 
-	let parsePayPalRegular = () => {
-		//Get the items
-		let transaction = document.querySelector("#td_purchaseDetailsSeller").parentElement; //The main transaction purchase details
-		let items_arr = [];
-		let items = document.querySelectorAll(".item");
-		for (let i=1; i<items.length; i++) {
-			try {
-		console.log(items[i])
-				let desc = items[i].children[0].children[0].innerText; //Description is first field
-				let price = items[i].children[0].children[1].innerText; //Price is second field
-				items_arr.push({
-					desc: desc,
+	/**
+	 * Parse and return a list of orders from the PayPal Activity page
+	 */
+	const parsePayPalRegular = () => {
+		let orders  = document.querySelectorAll(".highlightTransactionDetailsPanel > .highlightTransactionPanel") //Get all open orders
+		let ordersRes = []; //Store resulting order objects
+		orders.forEach((order) => {
+			let items = order.querySelectorAll("#td_purchaseDetailsSeller + * > *"); //Select all items
+			let itemsArr = [];
+			items.forEach((item) => {
+				let itemRow = item.querySelectorAll("span");
+				itemsArr.push({
+					desc: itemRow[0].innerText,
 					sku: "I", //No SKU field currently
 					qty: "1", //No QTY field currently
-					price: price
+					price: parseFloat(itemRow[1].innerText.replace("$", ""))
 				});
-			} catch (err) {
-				console.log("ERR: found an invalid coin entry, index: ", i);
-			}
-		}
+			});
 
-		let tax = 0; //No tax currently
+			let tax = 0; //No tax currently
 
-		//Get the total and shipping (if any)
-		let total = 0;
-		let shipping = 0;
-		let details = transaction.querySelector(".purchaseDetailFields").children; //Items section
-		for (let i=0; i<details.length; i++) {
-			try {
-				let selector = details[i].children[0].children;
-				if (selector[0].innerText.includes("Purchase total")) { //Order total
-					total = parseFloat(selector[1].innerText.substring(selector[1].innerText.indexOf("$")+1));
-					if (isNaN(total)) {
-						console.log("ERR: couldn't parse number from total: ", total);
-						total = 0;
+			//Get the total and shipping (if any)
+			let subtotal = 0;
+			let shipping = 0;
+			let details = order.querySelector(".purchaseDetailFields").children; //Items section
+			for (let i=0; i<details.length; i++) {
+				try {
+					let selector = details[i].children[0].children;
+					if (selector[0].innerText.includes("Purchase total")) { //Order total
+						subtotal = parseFloat(selector[1].innerText.substring(selector[1].innerText.indexOf("$")+1));
+						if (isNaN(subtotal)) {
+							console.log("ERR: couldn't parse number from total: ", subtotal);
+							subtotal = 0;
+						}
+						console.log("INFO: found total: ", subtotal);
+					} else if (selector[0].innerText.includes("Shipping")) { //Order total
+						shipping = parseFloat(selector[1].innerText.substring(selector[1].innerText.indexOf("$")+1));
+						if (isNaN(shipping)) {
+							console.log("ERR: couldn't parse number from shipping: ", shipping);
+							shipping = 0;
+						}
+						console.log("INFO: found shipping: ", shipping);
 					}
-					console.log("INFO: found total: ", total);
-				} else if (selector[0].innerText.includes("Shipping")) { //Order total
-					shipping = parseFloat(selector[1].innerText.substring(selector[1].innerText.indexOf("$")+1));
-					if (isNaN(shipping)) {
-						console.log("ERR: couldn't parse number from shipping: ", shipping);
-						shipping = 0;
-					}
-					console.log("INFO: found shipping: ", shipping);
+				} catch (err) {
+					console.log("ERR: found an invalid data entry, index: ", i, "Error: ", err);
 				}
-			} catch (err) {
-				console.log("ERR: found an invalid data entry, index: ", i, "Error: ", err);
 			}
-		}
-		total = total - shipping;
+			subtotal -= shipping;
 
-		//Get the address
-		let addr_block = document.querySelector("#td_sellerShipAddress").parentElement;
-		let addr = addr_block.children[1].innerText + "\n" + addr_block.children[2].children[1].innerText; //Combine the name and address
+			//Get the address
+			let addr = order.querySelector("#td_sellerWasShipped + *").innerText + "\n" + order.querySelector("#td_sellerWasShipped + * + * > div").innerText; //Combine the name and address
 
-		return {
-			to: addr,
-			shipping: shipping,
-			tax: tax,
-			subtotal: total,
-			items: items_arr
-		}
+			ordersRes.push({
+				to: addr,
+				shipping: shipping,
+				tax: tax,
+				subtotal: subtotal,
+				items: itemsArr
+			});
+		});
+		return ordersRes;
 	}
 	console.log("[PrinterPi] Parsing data...");
 	try { //Try eBay Regular
@@ -155,9 +160,9 @@
 			});
 		} catch (errB) { //Finally, try PayPal
 			try {
-				let data = parsePayPalRegular();
+				let orders = parsePayPalRegular();
 				chrome.runtime.sendMessage({
-					orders: [data]
+					orders: orders
 				});
 			} catch (errC) {
 				console.log("[PrinterPi] Error while trying to parse both all pages. eBay Regular:", errA, "eBay Bulk:", errB, "PayPal Regular:", errC);
