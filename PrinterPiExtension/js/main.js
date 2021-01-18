@@ -282,7 +282,7 @@ let printEnvelope = (pkt) => {
 
   pdf.setLineWidth(0.5);
   let fromLogo = pkt.settings.fromLogo;
-  if (fromLogo) { //Image to add
+  if (fromLogo && fromLogo.height && fromLogo.width) { //Image to add
     if (fromLogo.height*2 > fromLogo.width) { //Height is larger than half of the width - show next to address as opposed to on top
       wImg = hBox * pkt.settings.fromLogo.width / pkt.settings.fromLogo.height;
       pdf.line(fromXY.x+wImg, fromXY.y, fromXY.x+wImg, fromXY.y+hBox); //Add line under box

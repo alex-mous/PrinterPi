@@ -45,7 +45,7 @@
 			to: address,
 			shipping: shipping,
 			subtotal: itemTotal,
-			tax: grandTotal-(shipping+itemTotal),
+			tax: Math.round((grandTotal-(shipping+itemTotal) + Number.EPSILON) * 100) / 100, //Ensure tax is valid (to ensure not 1e-14 or similar)
 			items: item_arr
 		}
 	}
@@ -95,12 +95,28 @@
 			let itemsArr = [];
 			items.forEach((item) => {
 				let itemRow = item.querySelectorAll("span");
-				itemsArr.push({
-					desc: itemRow[0].innerText,
+				let desc, priceNode, qty;
+				if (itemRow.length == 2) { //Single item
+					desc = itemRow[0].innerText;
+					qty = "1";
+					priceNode = itemRow[1];
+				} else if (itemRow.length == 3) { //Multiple items
+					let tmpNode = itemRow[0].firstChild;
+					while (tmpNode.nodeType != document.TEXT_NODE) {
+						tmpNode = tmpNode.nextSibling;
+					}
+					desc = tmpNode.data;
+					qty = parseInt(itemRow[1].innerText.match(/\d+/)?.[0]);
+					priceNode = itemRow[2];
+				}
+				let itm = {
+					desc: desc,
 					sku: "I", //No SKU field currently
-					qty: "1", //No QTY field currently
-					price: parseFloat(itemRow[1].innerText.replace("$", ""))
-				});
+					qty: qty, //No QTY field currently
+					price: parseFloat(priceNode.innerText.replace("$", ""))
+				};
+				console.log("[PrinterPi] Found Item: ", itm);
+				itemsArr.push(itm);
 			});
 
 			let tax = 0; //No tax currently
@@ -134,7 +150,7 @@
 			subtotal -= shipping;
 
 			//Get the address
-			let addr = order.querySelector("#td_sellerWasShipped + *").innerText + "\n" + order.querySelector("#td_sellerWasShipped + * + * > div").innerText; //Combine the name and address
+			let addr = order.querySelector("#td_sellerWasShipped + *, #td_sellerShipAddress + *").innerText + "\n" + order.querySelector("#td_sellerWasShipped + * + * > div, #td_sellerShipAddress + * + * > div").innerText; //Combine the name and address
 
 			ordersRes.push({
 				to: addr,
@@ -149,18 +165,21 @@
 	console.log("[PrinterPi] Parsing data...");
 	try { //Try eBay Regular
 		let data = parseEbayRegular();
+		console.log("Data:", data);
 		chrome.runtime.sendMessage({
 			orders: [data]
 		});
 	} catch (errA) {
 		try { //Otherwise, try eBay Bulk
 			let orders = parseEbayBulk();
+			console.log("Data:", orders);
 			chrome.runtime.sendMessage({
 				orders: orders
 			});
 		} catch (errB) { //Finally, try PayPal
 			try {
 				let orders = parsePayPalRegular();
+				console.log("Data:", orders);
 				chrome.runtime.sendMessage({
 					orders: orders
 				});
