@@ -14,45 +14,56 @@
 					Not connected
 				</p>
 			</h5>
-			<hr class="py-1 my-1">
+			<hr class="w-25 py-1 my-1">
 			<h6 class="text-info text-center" id="more-info"></h6>
+			<div class="px-3 pt-2 pb-1 row">
+				<button class="btn btn-sm btn-warning col mx-2" id='parse-button'>Parse Page</button>
+				<button class="btn btn-sm btn-warning col mx-2" id='restore-button'>Show Saved</button>
+				<button class="btn btn-sm btn-warning col mx-2" id='file-button'>Parse File</button>
+			</div>
+			<hr class="py-1 my-1">
+			
 			<div class="px-3 py-1 row">
-				<button class="btn btn-primary col mx-2" id='print-button'>Print Receipt</button>
 				<button class="btn btn-primary col mx-2" id='print-all-button'>Print All Receipts</button>
 			</div>
 			<div class="px-3 py-1 row">
-				<button class="btn btn-sm btn-primary col mx-2" id='envelope-button'>Print Envelope</button>
-			</div>
-			<div class="px-3 pt-2 pb-1 row">
-				<button class="btn btn-sm btn-warning col mx-2" id='parse-button'>Parse Page</button>
-				<button class="btn btn-sm btn-warning col mx-2" id='file-button'>Parse Receipt File</button>
+				<button class="btn btn-sm btn-primary col mx-2" id='envelope-all-button'>Print All Envelopes</button>
 			</div>
 			<div class="px-3 py-1 row">
-				<button class="btn btn-sm btn-success col mx-2" id='save-button'>Store Data</button>
+				<button class="btn btn-sm btn-warning col mx-2" id='save-button'>Save</button>
 			</div>
+			
 			<input type="file" style="display: none" id="file-dialog" accept=".json" />
 
-			<hr class="py-1 my-1">
-			<h5 class="text-center p-0 pt-1 m-0">Current Order</h5>
-			<select class="form-control" id="order-select">
+			<hr class="p-0 m-0 pt-1 mt-1">
+
+			<select class="form-control m-0 mt-1 mb-2" id="order-select">
 			</select>
-			<button class="btn btn-sm btn-warning col mx-2" id='remove-button'>Remove order</button>
+
+			<hr class="p-0 m-0 pt-1 mt-1">
+
+			<h5 class="text-center p-0 pb-1 m-0">Current Order</h5>
+			<div class="px-3 pt-2 pb-1 row">
+				<button class="btn btn-sm btn-primary col mx-1" id='print-button'>Print Receipt</button>
+				<button class="btn btn-sm btn-primary col mx-1" id='envelope-button'>Print Envelope</button>
+				<button class="btn btn-sm btn-warning col mx-1" id='remove-button'>Remove order</button>
+			</div>
 			<hr class="py-1 my-1">
-			<h5 class="text-center p-0 pt-1 m-0">Address</h5>
+			<h6 class="text-center p-0 py-1 m-0">Address</h6>
 			<textarea class="form-control h-100" rows="4" id="Address"></textarea>
-			<h5 class="text-center p-0 pt-1 m-0">Shipping</h5>
+			<h6 class="text-center p-0 pt-1 m-0">Shipping</h6>
 			<input type="text" class="form-control w-100" id="Shipping" />
-			<h5 class="text-center p-0 pt-1 m-0">Tax</h5>
+			<h6 class="text-center p-0 pt-1 m-0">Tax</h6>
 			<input type="text" class="form-control w-100" id="Tax" />
-			<h5 class="text-center p-0 pt-1 m-0 mb-1">Subtotal<button class="btn btn-secondary btn-sm p-0 m-0 mx-1" data-toggle="tooltip" data-html="true" title="<em>Item total not including shipping or tax</em>">&#10068</button></h5>
+			<h6 class="text-center p-0 pt-1 m-0 mb-1">Subtotal<strong class="bg-dark m-0 mx-1" data-toggle="tooltip" data-html="true" title="Item total not including shipping or tax">&#10068</strong></h6>
 			<input type="text" class="form-control w-100" id="Subtotal" />
 			<hr class="py-1 mt-2 mb-0">
-			<h5 class="text-center p-0 pt-1 m-0">Items Purchased</h5>
+			<h6 class="text-center p-0 pt-1 m-0">Items Purchased</h6>
 			<table class="table">
 				<thead>
-					<tr>
+					<tr class="text-center">
 						<th>Description</th>
-						<th>Price (Total)</th>
+						<th>Total</th>
 						<th>QTY</th>
 						<th>SKU</th>
 						<th></th>
@@ -69,7 +80,7 @@
 			<hr class="py-1 mt-2 mb-0">
 			<div class="row">
 				<div class="col px-3 text-center">
-					<button class="btn btn-sm btn-secondary" id="options-btn">PrinterPi Settings</button>
+					<button class="btn btn-sm btn-link w-100 py-0 mt-2" id="options-btn">PrinterPi Settings</button>
 				</div>
 			</div>
 			<hr class="py-1 mt-2 mb-0">

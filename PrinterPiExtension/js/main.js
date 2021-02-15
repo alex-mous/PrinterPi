@@ -102,7 +102,7 @@ let readStorageData = (onFinish) => {
       document.getElementById('envelope-button').disabled = true;
       document.getElementById('save-button').disabled = true;
     }
-    onFinish();
+    if (onFinish) onFinish();
   });
 }
 
@@ -339,7 +339,7 @@ let getData = () => { //Read the data from the HTML page
  * @param {number} orderIndex 
  */
 let selectOrder = (orderIndex) => {
-  console.log(orders);
+  document.getElementById('order-select').value = orderIndex;
   setData({
       to: orders[orderIndex]?.to || "",
       shipping: orders[orderIndex]?.shipping || "0",
@@ -354,9 +354,13 @@ let selectOrder = (orderIndex) => {
  * Remove the current order (from global orders)
  */
 const removeCurrentOrder = () => {
+  let nextIndex = parseInt(document.getElementById("order-select").value);
   orders.splice(document.getElementById("order-select").value, 1);
   showOrders();
-  selectOrder(0);
+  console.log(orders, nextIndex);
+  if (nextIndex >= orders.length) nextIndex -= 1; //Ensure index isn't too large
+  if (nextIndex < 0) nextIndex = 0; //Ensure index isn't before first element
+  console.log(nextIndex);selectOrder(nextIndex);
 }
 
 /**
@@ -367,7 +371,7 @@ const showOrders = () => {
   orders.forEach((_, i) => {
     let opt = document.createElement("OPTION");
     opt.value = i;
-    opt.innerHTML = `Order ${i+1}`;
+    opt.innerHTML = `${i+1}: ${orders[i].to.split("\n")?.[0] || "Order" + (i+1)}`;
     opt.selected = i==0;
     document.getElementById('order-select').appendChild(opt);
   });
@@ -622,7 +626,7 @@ window.onload = () => { //Add event listeners, etc.
       let pkt = getPacket(settings);
       if (pkt) sendData(pkt);
     });
-    document.getElementById('print-all-button').addEventListener('click', () => { //Get the data packet and send it
+    document.getElementById('print-all-button').addEventListener('click', () => { //Get the data packets and send them
       for (let orderIndex in orders) {
         selectOrder(orderIndex);
         let pkt = getPacket(settings);
@@ -632,6 +636,13 @@ window.onload = () => { //Add event listeners, etc.
     document.getElementById('envelope-button').addEventListener('click', () => { //Get the data packet and print it
       let pkt = getPacket(settings);
       if (pkt) printEnvelope(pkt);
+    });
+    document.getElementById('envelope-all-button').addEventListener('click', () => { //Get the data packets and print them
+      for (let orderIndex in orders) {
+        selectOrder(orderIndex);
+        let pkt = getPacket(settings);
+        if (pkt) printEnvelope(pkt);
+      }
     });
 
     if (settings.autoParse == "Y") {
@@ -645,10 +656,12 @@ window.onload = () => { //Add event listeners, etc.
     done_msg.innerHTML = "Please configure the printer settings in the Setting page (via the button PrinterPi Settings below)";
     done_msg.classList = "text-danger";
   });
+
   document.getElementById('order-select').addEventListener("change", (e) => selectOrder(e.target.value));
   document.getElementById('remove-button').addEventListener("click", removeCurrentOrder);
-  document.getElementById('save-button').addEventListener('click', setStorageData);
   document.getElementById('parse-button').addEventListener('click', parsePage); //Execute the background parsing script
+  document.getElementById('restore-button').addEventListener('click', readStorageData);
+  document.getElementById('save-button').addEventListener('click', setStorageData);
   document.getElementById('file-button').addEventListener('click', () => document.getElementById('file-dialog').click()); //Parse a file for the receipt
   document.getElementById('file-dialog').addEventListener('change', parseFile)
   document.getElementById("items-row-btn").addEventListener("click", addRowItems);
@@ -662,13 +675,15 @@ window.onload = () => { //Add event listeners, etc.
 }
 
 chrome.runtime.onMessage.addListener((msg) => { //Listen for messages and set the data accordingly
-  if (msg.error != null) { //Error message from background script
+  if (msg.error != null || msg.orders?.length == 0) { //Error message from background script
     console.log("ERR: error received from background script: ", msg);
     readStorageData(() => { //Default to storage
       document.getElementById("more-info").innerHTML += ". Not a valid page to parse."; //Show the error message
     });
     document.getElementById('parse-button').disabled = true;
   } else if (msg.orders) {
+    document.getElementById("more-info").innerHTML = "Read data from page"; //Show the error message
+    console.log("Parsed orders: ", msg.orders);
     if (msg.orders.length >= 1) {
       setData({ //Set the data packet
         to: msg.orders[0].to,

@@ -22,12 +22,13 @@
 	 */
 	const parseEbayRegular = () => {
 		let address = document.querySelector("#shipToAddress").innerText;
-		let shipping = document.querySelectorAll("._1nhS6BoY")[3].children[1].innerText;
+		let shipping = document.querySelectorAll("._35lSuob7")[3].children[1].innerText;
 		shipping = parseFloat(shipping.substring(shipping.indexOf("$")+1)); //Shipping as a float
-		let grandTotal = document.querySelectorAll("._1nhS6BoY")[2].children[1].innerText; //Shipping+items+tax
+		let grandTotal = document.querySelectorAll("._35lSuob7")[2].children[1].innerText; //Shipping+items+tax
 		grandTotal = parseFloat(grandTotal.substring(grandTotal.indexOf("$")+1));
+		
 		let itemTotal = 0; //Total cost of items
-		let items = document.querySelectorAll(".-CkHbnvR");
+		let items = document.querySelectorAll("._2A-ocLMX");
 		let item_arr = [];
 		for (let i=0; i<items.length; i++) { //Iterate through the items
 			let itm = items[i].children[1];
@@ -165,7 +166,7 @@
 	console.log("[PrinterPi] Parsing data...");
 	try { //Try eBay Regular
 		let data = parseEbayRegular();
-		console.log("Data:", data);
+		console.log("Parsed data:", data);
 		chrome.runtime.sendMessage({
 			orders: [data]
 		});
