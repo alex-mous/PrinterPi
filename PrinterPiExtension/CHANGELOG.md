@@ -14,3 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed extension logo
 - Improved interface for adding/removing orders (changed to more logical labelling system and increment/decrement when removing orders)
 - Added bulk printing for envelopes
+
+## [7.2.1] - 2021-01-17
+### Changed
+- Add saving to edited data fields
+- Fix bug with printing all envelopes

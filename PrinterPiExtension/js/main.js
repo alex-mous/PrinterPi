@@ -64,7 +64,7 @@
   * @param {string} resError Response error (if any)
   */
 
-const VERSION_NO = 7.1; //Current version
+const VERSION_NO = 7.2; //Current version
 
 let orders = []; //Orders received from background script
 
@@ -252,10 +252,11 @@ let downloadFile = (pkt, filepath) => {
 }
 
 /**
- * Generate and print a JSPDF PDF document envelope
+ * Generate a JSPDF PDF document envelope and return as a blob
  *
  * @function printEnvelope
  * @param {Packet} pkt Packet to use for envelope PDF
+ * @returns {string} File blob
  */
 let printEnvelope = (pkt) => {
   let pdf = new window.jspdf.jsPDF({
@@ -299,7 +300,7 @@ let printEnvelope = (pkt) => {
 
   pdf.setFontSize(12);
   pdf.text(to, toXY.x+wFrom, toXY.y, {align: "center", lineHeightFactor: "1.1"});
-  window.open(pdf.output("bloburl")).print(); //Open window and print
+  return pdf.output("bloburl"); //Open window and print
 }
 
 /**
@@ -331,6 +332,15 @@ let getData = () => { //Read the data from the HTML page
     items: items
   }
   return data;
+}
+
+/**
+ * Update the global orders with any changes
+ */
+const updateOrders = () => {
+  if (validateInputs()) {
+    orders[document.getElementById("order-select").value] = getData();
+  }
 }
 
 /**
@@ -635,14 +645,24 @@ window.onload = () => { //Add event listeners, etc.
     });
     document.getElementById('envelope-button').addEventListener('click', () => { //Get the data packet and print it
       let pkt = getPacket(settings);
-      if (pkt) printEnvelope(pkt);
+      if (pkt) {
+          let url = printEnvelope(pkt);
+          window.open(url).print();
+      }
     });
     document.getElementById('envelope-all-button').addEventListener('click', () => { //Get the data packets and print them
+      let urls = [];
       for (let orderIndex in orders) {
         selectOrder(orderIndex);
         let pkt = getPacket(settings);
-        if (pkt) printEnvelope(pkt);
+        if (pkt) {
+          chrome.tabs.create({
+            url: printEnvelope(pkt)
+          })
+        }
+       
       }
+      
     });
 
     if (settings.autoParse == "Y") {
@@ -666,10 +686,10 @@ window.onload = () => { //Add event listeners, etc.
   document.getElementById('file-dialog').addEventListener('change', parseFile)
   document.getElementById("items-row-btn").addEventListener("click", addRowItems);
   document.getElementById("options-btn").addEventListener("click", showOptions);
-  document.getElementById('Shipping').addEventListener("change", validateInputs);
-  document.getElementById('Tax').addEventListener("change", validateInputs);
-	document.getElementById('Subtotal').addEventListener("change", validateInputs);
-  document.getElementById('Address').addEventListener("change", validateInputs);
+  document.getElementById('Shipping').addEventListener("change", updateOrders);
+  document.getElementById('Tax').addEventListener("change", updateOrders);
+	document.getElementById('Subtotal').addEventListener("change", updateOrders);
+  document.getElementById('Address').addEventListener("change", updateOrders);
 
   $('[data-toggle="tooltip"]').tooltip(); //Setup up tooltips
 }
