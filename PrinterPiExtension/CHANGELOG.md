@@ -8,14 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Fixed rounding error with tax field when on eBay Regular page (causing incorrect values to be present in resulting receipt)
 
-## [7.2.0] - 2021-01-17
+## [7.2.0] - 2021-02-15
 ### Changed
 - Fixed bug with new eBay update
 - Changed extension logo
 - Improved interface for adding/removing orders (changed to more logical labelling system and increment/decrement when removing orders)
 - Added bulk printing for envelopes
 
-## [7.2.1] - 2021-01-17
-### Changed
+## [7.2.1] - 2021-02-15
+### Added
 - Add saving to edited data fields
+### Changed
 - Fix bug with printing all envelopes
+
+## [7.2.2] - 2021-02-27
+### Changed
+- Fix interface to work with latest eBay Print Label page

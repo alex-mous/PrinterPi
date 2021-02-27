@@ -21,12 +21,24 @@
 	 * Parse and return an order from eBay regular print a shipping label page
 	 */
 	const parseEbayRegular = () => {
+		if (document.querySelectorAll("._35lSuob7").length < 5) document.querySelector(".UdmNL5E6").click(); //Show extra information if not shown
+		document.querySelector("[data-testid='open-to-address-link']").click(); //Show extra address information
+
 		let address = document.querySelector("#shipToAddress").innerText;
-		let shipping = document.querySelectorAll("._35lSuob7")[3].children[1].innerText;
+		let country = document.querySelector("input[data-testid='address.label.country']").value;
+		if (!country.includes("United States")) address += country;
+
+		let shipping = document.querySelectorAll("._35lSuob7")[4].children[1].innerText;
 		shipping = parseFloat(shipping.substring(shipping.indexOf("$")+1)); //Shipping as a float
-		let grandTotal = document.querySelectorAll("._35lSuob7")[2].children[1].innerText; //Shipping+items+tax
+
+		let grandTotal = document.querySelectorAll("._35lSuob7")[3].children[1].innerText; //Shipping+items+tax
 		grandTotal = parseFloat(grandTotal.substring(grandTotal.indexOf("$")+1));
+
+		document.querySelector(".UdmNL5E6").click(); //Hide extra information
+		document.querySelector(".lightbox-dialog__close").click();
 		
+
+
 		let itemTotal = 0; //Total cost of items
 		let items = document.querySelectorAll("._2A-ocLMX");
 		let item_arr = [];
@@ -42,13 +54,17 @@
 				price: price
 			});
 		}
-		return {
+		let order = {
 			to: address,
 			shipping: shipping,
 			subtotal: itemTotal,
 			tax: Math.round((grandTotal-(shipping+itemTotal) + Number.EPSILON) * 100) / 100, //Ensure tax is valid (to ensure not 1e-14 or similar)
 			items: item_arr
-		}
+		};
+
+		console.table(order);
+		console.table(item_arr);
+		return order;
 	}
 
 	/**
@@ -132,20 +148,20 @@
 					if (selector[0].innerText.includes("Purchase total")) { //Order total
 						subtotal = parseFloat(selector[1].innerText.substring(selector[1].innerText.indexOf("$")+1));
 						if (isNaN(subtotal)) {
-							console.log("ERR: couldn't parse number from total: ", subtotal);
+							console.error("[PrinterPi] couldn't parse number from total: ", subtotal);
 							subtotal = 0;
 						}
-						console.log("INFO: found total: ", subtotal);
+						console.log("[PrinterPi] found total: ", subtotal);
 					} else if (selector[0].innerText.includes("Shipping")) { //Order total
 						shipping = parseFloat(selector[1].innerText.substring(selector[1].innerText.indexOf("$")+1));
 						if (isNaN(shipping)) {
-							console.log("ERR: couldn't parse number from shipping: ", shipping);
+							console.error("[PrinterPi] Couldn't parse number from shipping: ", shipping);
 							shipping = 0;
 						}
-						console.log("INFO: found shipping: ", shipping);
+						console.log("[PrinterPi] found shipping: ", shipping);
 					}
 				} catch (err) {
-					console.log("ERR: found an invalid data entry, index: ", i, "Error: ", err);
+					console.error("[PrinterPi] found an invalid data entry, index: ", i, "Error: ", err);
 				}
 			}
 			subtotal -= shipping;
@@ -161,31 +177,34 @@
 				items: itemsArr
 			});
 		});
+		if (ordersRes.length == 0) {
+			throw new Error("No orders found");
+		}
 		return ordersRes;
 	}
 	console.log("[PrinterPi] Parsing data...");
 	try { //Try eBay Regular
 		let data = parseEbayRegular();
-		console.log("Parsed data:", data);
+		console.log("[PrinterPi] eBay Regular data:", data);
 		chrome.runtime.sendMessage({
 			orders: [data]
 		});
 	} catch (errA) {
 		try { //Otherwise, try eBay Bulk
 			let orders = parseEbayBulk();
-			console.log("Data:", orders);
+			console.log("[PrinterPi] eBay Bulk orders:", orders);
 			chrome.runtime.sendMessage({
 				orders: orders
 			});
 		} catch (errB) { //Finally, try PayPal
 			try {
 				let orders = parsePayPalRegular();
-				console.log("Data:", orders);
+				console.log("[PrinterPi] PayPal orders:", orders);
 				chrome.runtime.sendMessage({
 					orders: orders
 				});
 			} catch (errC) {
-				console.log("[PrinterPi] Error while trying to parse both all pages. eBay Regular:", errA, "eBay Bulk:", errB, "PayPal Regular:", errC);
+				console.error("[PrinterPi] Error while trying to parse both all pages. eBay Regular:", errA, "eBay Bulk:", errB, "PayPal Regular:", errC);
 				chrome.runtime.sendMessage({error: "Not a valid page to parse", errMsg: [errA, errB, errC]});
 			}
 		}
