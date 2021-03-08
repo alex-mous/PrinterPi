@@ -24,3 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [7.2.2] - 2021-02-27
 ### Changed
 - Fix interface to work with latest eBay Print Label page
+
+## [7.2.3] - 2021-03-07
+### Added
+- Add support for no SKU items in Bulk Shipping Label printing

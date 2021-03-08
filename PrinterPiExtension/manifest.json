@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "PrinterPi",
-  "version": "7.2.0",
+  "version": "7.2.3",
   "description": "Parse eBay Print Shipping Label or PayPal Activity pages and send the data to an application that controls a receipt printer",
 
   "options_page": "options.html",

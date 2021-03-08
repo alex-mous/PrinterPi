@@ -75,13 +75,23 @@
 		document.querySelectorAll(".orders-list__item__details").forEach((order) => {
 			let address = order.querySelector("address").innerText;
 			let items = [];
+			console.log(order);
 			order.querySelectorAll(".item__description").forEach(item => {
-				items.push({
-					desc: item.children[0].innerText,
-					sku: item.querySelector(".item__details").children[0].innerText.slice(5),
-					qty: item.querySelector(".item__details").children[1].innerText.slice(5),
-					price: parseFloat(item.querySelector(".item__details").children[2].innerText.slice(11))
-				});
+				if (item.querySelector(".item_details") != null) {
+					items.push({
+						desc: item.children[0].innerText,
+						sku: item.querySelector(".item__details").children[0].innerText.slice(5),
+						qty: item.querySelector(".item__details").children[1].innerText.slice(5),
+						price: parseFloat(item.querySelector(".item__details").children[2].innerText.slice(11))
+					});
+				} else { // Try no SKU verson
+					items.push({
+						desc: item.children[0].innerText,
+						sku: "I",
+						qty: item.querySelector(".item__details-no-sku").children[0].innerText.slice(5),
+						price: parseFloat(item.querySelector(".item__details-no-sku").children[1].innerText.slice(11))
+					});
+				}
 			});
 			let shipping = order.querySelector(".buyer-paid-service").children[0].innerText.slice(1);
 			
@@ -204,7 +214,10 @@
 					orders: orders
 				});
 			} catch (errC) {
-				console.error("[PrinterPi] Error while trying to parse both all pages. eBay Regular:", errA, "eBay Bulk:", errB, "PayPal Regular:", errC);
+				console.error("[PrinterPi] Error while trying to parse all pages.");
+				console.error("[PrinterPi] eBay Regular:", errA);
+				console.error("[PrinterPi] eBay Bulk:", errB);
+				console.error("[PrinterPi] PayPal Regular:", errC);
 				chrome.runtime.sendMessage({error: "Not a valid page to parse", errMsg: [errA, errB, errC]});
 			}
 		}
