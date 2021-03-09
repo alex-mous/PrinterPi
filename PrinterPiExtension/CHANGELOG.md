@@ -28,3 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [7.2.3] - 2021-03-07
 ### Added
 - Add support for no SKU items in Bulk Shipping Label printing
+
+## [7.2.4] - 2021-03-08
+### Added
+- Add support for no SKU items in Regular Shipping Label printing

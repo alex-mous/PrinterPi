@@ -44,13 +44,17 @@
 		let item_arr = [];
 		for (let i=0; i<items.length; i++) { //Iterate through the items
 			let itm = items[i].children[1];
-			let price = itm.children[3].innerText;
+			let sIndex = 0; //Default to no index offset (no SKU)
+			if (itm.children.length > 3) {
+				sIndex = 1;
+			}
+			let price = itm.children[sIndex + 2].innerText;
 			price = parseFloat(price.substring(price.indexOf("$")+1));
 			itemTotal += price;
 			item_arr.push({
 				desc: itm.children[0].innerText,
-				sku: itm.children[1].innerText.slice(5),
-				qty: itm.children[2].innerText.slice(5),
+				sku: sIndex > 0 ? itm.children[1].innerText.slice(5) : "I",
+				qty: itm.children[sIndex+1].innerText.slice(5),
 				price: price
 			});
 		}
@@ -75,7 +79,6 @@
 		document.querySelectorAll(".orders-list__item__details").forEach((order) => {
 			let address = order.querySelector("address").innerText;
 			let items = [];
-			console.log(order);
 			order.querySelectorAll(".item__description").forEach(item => {
 				if (item.querySelector(".item_details") != null) {
 					items.push({
