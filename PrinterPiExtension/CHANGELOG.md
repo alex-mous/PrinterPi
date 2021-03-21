@@ -32,3 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [7.2.4] - 2021-03-08
 ### Added
 - Add support for no SKU items in Regular Shipping Label printing
+
+## [7.2.5] - 2021-03-21
+### Changed
+- Fix bug with non-invoice payments on PayPal
+- Fix compatibility with eBay Bulk Shipping Label printing update

@@ -80,7 +80,7 @@
 			let address = order.querySelector("address").innerText;
 			let items = [];
 			order.querySelectorAll(".item__description").forEach(item => {
-				if (item.querySelector(".item_details") != null) {
+				if (item.querySelector(".item__details") != null) {
 					items.push({
 						desc: item.children[0].innerText,
 						sku: item.querySelector(".item__details").children[0].innerText.slice(5),
@@ -100,13 +100,17 @@
 			
 			let itemTotal = items.length > 1 ? items.reduce((a, b) => (a .price|| a) + (b.price || b)) : items[0].price;
 			
-			orders.push({
+			let ordr = {
 				to: address,
 				shipping: shipping,
 				subtotal: itemTotal,
 				tax: 0, //No tax field available
 				items: items
-			})
+			};
+
+			console.log("Parsed eBay bulk order: ", ordr);
+
+			orders.push(ordr);
 		});
 		if (orders.length == 0) {
 			throw new Error("No orders found");
@@ -154,28 +158,36 @@
 			//Get the total and shipping (if any)
 			let subtotal = 0;
 			let shipping = 0;
-			let details = order.querySelector(".purchaseDetailFields").children; //Items section
-			for (let i=0; i<details.length; i++) {
-				try {
-					let selector = details[i].children[0].children;
-					if (selector[0].innerText.includes("Purchase total")) { //Order total
-						subtotal = parseFloat(selector[1].innerText.substring(selector[1].innerText.indexOf("$")+1));
-						if (isNaN(subtotal)) {
-							console.error("[PrinterPi] couldn't parse number from total: ", subtotal);
-							subtotal = 0;
+			console.log(order, order.querySelector(".purchaseDetailFields"))
+			let details = order.querySelector(".purchaseDetailFields")?.children; //Items section
+			if (details) {
+				for (let i=0; i<details.length; i++) {
+					try {
+						let selector = details[i].children[0].children;
+						if (selector[0].innerText.includes("Purchase total")) { //Order total
+							subtotal = parseFloat(selector[1].innerText.substring(selector[1].innerText.indexOf("$")+1));
+							if (isNaN(subtotal)) {
+								console.error("[PrinterPi] couldn't parse number from total: ", subtotal);
+								subtotal = 0;
+							}
+							console.log("[PrinterPi] found total: ", subtotal);
+						} else if (selector[0].innerText.includes("Shipping")) { //Order total
+							shipping = parseFloat(selector[1].innerText.substring(selector[1].innerText.indexOf("$")+1));
+							if (isNaN(shipping)) {
+								console.error("[PrinterPi] Couldn't parse number from shipping: ", shipping);
+								shipping = 0;
+							}
+							console.log("[PrinterPi] found shipping: ", shipping);
 						}
-						console.log("[PrinterPi] found total: ", subtotal);
-					} else if (selector[0].innerText.includes("Shipping")) { //Order total
-						shipping = parseFloat(selector[1].innerText.substring(selector[1].innerText.indexOf("$")+1));
-						if (isNaN(shipping)) {
-							console.error("[PrinterPi] Couldn't parse number from shipping: ", shipping);
-							shipping = 0;
-						}
-						console.log("[PrinterPi] found shipping: ", shipping);
+					} catch (err) {
+						console.error("[PrinterPi] found an invalid data entry, index: ", i, "Error: ", err);
 					}
-				} catch (err) {
-					console.error("[PrinterPi] found an invalid data entry, index: ", i, "Error: ", err);
 				}
+			} else { //Try non-invoice method
+				shipping = 0;
+				subtotal = order.querySelector(".tdPurchaseDetails").children[0].children[1].children[0].children[1].innerText;
+				subtotal = parseFloat(subtotal.substring(subtotal.indexOf("$")+1));
+				console.log(subtotal);
 			}
 			subtotal -= shipping;
 

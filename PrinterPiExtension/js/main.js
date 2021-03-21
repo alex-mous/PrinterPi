@@ -338,7 +338,9 @@ let getData = () => { //Read the data from the HTML page
  * Update the global orders with any changes
  */
 const updateOrders = () => {
+  console.log("Updating);")
   if (validateInputs()) {
+    console.log(getData());
     orders[document.getElementById("order-select").value] = getData();
   }
 }
@@ -543,7 +545,7 @@ let getTDInput = (data) => {
   inpt.classList.add("form-control");
   inpt.setAttribute("value", data);
 	inpt.type = "text";
-  inpt.addEventListener("change", validateInputs);
+  inpt.addEventListener("change", updateOrders);
 	c1.appendChild(inpt);
 	return c1;
 }
